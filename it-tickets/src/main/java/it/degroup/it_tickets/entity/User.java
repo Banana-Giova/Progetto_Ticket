@@ -1,0 +1,50 @@
+package it.degroup.it_tickets.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+
+@Entity
+// @Table(name = "user")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+    @Column(nullable = false)
+    private String name;
+    @Column(nullable = false)
+    private String surname;
+    @Column(nullable = false)
+    private String password;
+    @Column(name = "email_confirmed", nullable = false)
+    private Boolean emailConfirmed;
+    @Column(name = "password_token", unique = true)
+    private String passwordToken;
+    @Column(name = "email_token", unique = true)
+    private String emailToken;
+    @Column(name = "password_expiration")
+    private LocalDateTime passwordExpiration;
+    @Column(name = "email_expiration")
+    private LocalDateTime emailExpiration;
+
+    @ManyToMany
+    @JoinTable(
+        name = "user_role",
+        joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
+    private Set<Role> roles;
+}
