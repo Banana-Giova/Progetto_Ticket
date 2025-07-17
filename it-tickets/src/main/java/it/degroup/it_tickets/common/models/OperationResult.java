@@ -2,8 +2,8 @@ package it.degroup.it_tickets.common.models;
 
 public class OperationResult<T> {
 
-    private static String OK_MESSAGE = "Operazione avvenuta con successo.";
-    private static String KO_MESSAGE = "Operazione fallita.";
+    private static final String OK_MESSAGE = "Operazione avvenuta con successo.";
+    private static final String KO_MESSAGE = "Operazione fallita.";
 
     private T data;
     private String message;
@@ -13,7 +13,7 @@ public class OperationResult<T> {
         OperationResult<T> result = new OperationResult<>();
         result.ok = true;
         result.data = data;
-        result.message = OperationResult.OK_MESSAGE;
+        result.message = OperationResult.OK_MESSAGE + " " + message;
         return result;
     }
 
