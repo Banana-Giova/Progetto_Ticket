@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
-// @Table(name = "user")
+@Table(name = "user_account")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -23,13 +23,11 @@ public class Ticket {
     private LocalDateTime modified_at;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "category_id", referencedColumnName = "id")
-    @Column(nullable = false)
+    @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
     private Category category;
 
     @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id",referencedColumnName = "id")
-    @Column(nullable = false)
+    @JoinColumn(name = "user_id",referencedColumnName = "id", nullable = false )
     private User user;
 
 
