@@ -8,11 +8,10 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    @Mapping(target = "id", source = "entity.id")
-    @Mapping(target = "email", source = "entity.email")
-    @Mapping(target = "name", source = "entity.name")
-    @Mapping(target = "surname", source = "entity.surname")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "surname", source = "surname")
     RegisterResponse userToRegisterResponse(User user);
 }

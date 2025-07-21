@@ -1,5 +1,8 @@
 package it.degroup.it_tickets.common.models;
 
+import lombok.Data;
+
+@Data
 public class OperationResult<T> {
 
     private static final String OK_MESSAGE = "Operazione avvenuta con successo.";

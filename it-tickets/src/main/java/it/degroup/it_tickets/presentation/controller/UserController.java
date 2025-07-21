@@ -8,9 +8,11 @@ import it.degroup.it_tickets.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@RestController
 public class UserController {
 
     @Autowired
@@ -22,14 +24,28 @@ public class UserController {
     *
     */
 
-    @PostMapping(path = "/register", consumes = "application/json")
-    public OperationResult<RegisterResponse> register(
-           @Valid @RequestBody RegisterRequest registerRequest) {
+    @PostMapping(path = "/register",
+                 consumes = MediaType.APPLICATION_JSON_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE  )
+    public ResponseEntity<OperationResult<RegisterResponse>> register(
+           @RequestBody RegisterRequest registerRequest) {
         try {
             RegisterResponse response = service.register(registerRequest);
-            return OperationResult.ok(response, "Creazione utente completata con successo!");
+            OperationResult<RegisterResponse> result =
+                    OperationResult.ok(response, "Creazione utente completata con successo!");
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+
         } catch (DuplicateException duplicateException) {
-            return OperationResult.ko(duplicateException.getMessage());
+            OperationResult<RegisterResponse> result =
+                    OperationResult.ko(duplicateException.getMessage());
+
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
         }
     }
 

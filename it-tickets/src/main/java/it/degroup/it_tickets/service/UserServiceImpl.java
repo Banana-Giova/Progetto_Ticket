@@ -21,6 +21,8 @@ public class UserServiceImpl implements UserService {
     private UserRepository repository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     @Transactional
@@ -33,7 +35,8 @@ public class UserServiceImpl implements UserService {
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         User user = new User(email, request.getName(), request.getSurname(), hashedPassword);
         User new_user = repository.save(user);
-        return UserMapper.INSTANCE.userToRegisterResponse(new_user);
+        return userMapper.userToRegisterResponse(new_user);
+        //return new RequestResponse();
     }
 
 
