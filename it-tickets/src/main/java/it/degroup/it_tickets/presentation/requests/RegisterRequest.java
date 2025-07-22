@@ -16,6 +16,10 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password cannot be blank")
-    @Size(min = 8, max = 24, message = "Password must be between 8 and 24 characters")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,24}$",
+            message = "The password must contain at least 8 characters, an uppercase letter, a lowercase letter, a number and a special character"
+    )
+
     private String password;
 }
