@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin("*")
 public class UserController {
 
     @Autowired
@@ -38,9 +39,9 @@ public class UserController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
 
-        } catch (DuplicateException duplicateException) {
+        } catch (DuplicateException | IllegalArgumentException exception) {
             OperationResult<RegisterResponse> result =
-                    OperationResult.ko(duplicateException.getMessage());
+                    OperationResult.ko(exception.getMessage());
 
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)

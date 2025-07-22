@@ -31,12 +31,13 @@ public class UserServiceImpl implements UserService {
         boolean existingUser = repository.existsByEmail(email);
         if (existingUser) {
             throw new DuplicateException(String.format("Un utente registrato con la seguente mail '%s' già esiste.", email));
+        } else if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("La password non coincide con il campo conferma password.");
         }
         String hashedPassword = passwordEncoder.encode(request.getPassword());
         User user = new User(email, request.getName(), request.getSurname(), hashedPassword);
         User new_user = repository.save(user);
         return userMapper.userToRegisterResponse(new_user);
-        //return new RequestResponse();
     }
 
 
