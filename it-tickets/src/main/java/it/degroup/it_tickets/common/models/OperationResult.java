@@ -1,14 +1,5 @@
 package it.degroup.it_tickets.common.models;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-
-@JsonAutoDetect(
-        fieldVisibility = Visibility.ANY,
-        getterVisibility = Visibility.NONE,
-        isGetterVisibility = Visibility.NONE,
-        setterVisibility = Visibility.NONE
-)
 public class OperationResult<T> {
 
     private static final String OK_MESSAGE = "Operazione avvenuta con successo.";

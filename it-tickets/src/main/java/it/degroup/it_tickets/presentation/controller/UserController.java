@@ -1,37 +1,45 @@
 package it.degroup.it_tickets.presentation.controller;
-
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
 import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.RegisterRequest;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
-import it.degroup.it_tickets.service.UserService;
-import jakarta.validation.Valid;
+import it.degroup.it_tickets.service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import it.degroup.it_tickets.presentation.requests.LoginRequest;
+import it.degroup.it_tickets.presentation.responses.LoginResponse;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin("*")
 public class UserController {
-
     @Autowired
-    private UserService service;
+    private UserService userService;
 
-    /*
-     *
-    Registration Methods
-    *
-    */
+   @PostMapping (path = "/login")   //responseEntity è una classe generica per gestire le risposte hhtp
+   public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+       try {
+           LoginResponse response = userService.authenticate(request);
+           return ResponseEntity.ok(response);
+       } catch (UsernameNotFoundException | BadCredentialsException e) {
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+       } catch (Exception e) {
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                   .body("Errore interno: " + e.getMessage());
+       }
+   }
 
     @PostMapping(path = "/register",
-                 consumes = MediaType.APPLICATION_JSON_VALUE,
-                 produces = MediaType.APPLICATION_JSON_VALUE  )
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE  )
     public ResponseEntity<OperationResult<RegisterResponse>> register(
-           @RequestBody RegisterRequest registerRequest) {
+            @RequestBody RegisterRequest registerRequest) {
         try {
-            RegisterResponse response = service.register(registerRequest);
+            RegisterResponse response = userService.register(registerRequest);
             OperationResult<RegisterResponse> result =
                     OperationResult.ok(response, "Creazione utente completata con successo!");
             return ResponseEntity
@@ -53,7 +61,11 @@ public class UserController {
     @GetMapping(path = "/confirm_email")
     public ResponseEntity<Void> confirmEmail(
             @RequestParam("token") String token) {
-        service.confirmEmail(token);
+        userService.confirmEmail(token);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+
+
 }
+

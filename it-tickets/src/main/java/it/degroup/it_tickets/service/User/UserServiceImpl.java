@@ -1,17 +1,18 @@
-package it.degroup.it_tickets.service;
-
+package it.degroup.it_tickets.service.User;
+import it.degroup.it_tickets.presentation.requests.LoginRequest;
+import it.degroup.it_tickets.presentation.responses.LoginResponse;
+import it.degroup.it_tickets.repository.UserRepository;
+import it.degroup.it_tickets.security.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
 import it.degroup.it_tickets.presentation.requests.RegisterRequest;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
-import it.degroup.it_tickets.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,6 +24,9 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private JwtUtil jwtUtil;
+
 
     @Override
     @Transactional
@@ -41,9 +45,20 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
     @Override
     public void confirmEmail(String email_token) {
-
     }
+
+    @Override
+    public LoginResponse authenticate(LoginRequest request) throws Exception {
+        var userFinded = repository.findByEmail(request.getEmail());
+        if (userFinded.isEmpty())
+            throw new UsernameNotFoundException("utente non presente nel sistema.");
+        if (userFinded.get().checkPassword(request.getPassword()) == false)
+            throw new Exception("credenziali non valide");
+
+        String tokenResponse = jwtUtil.generateToken(userFinded.get().getEmail());
+        return new LoginResponse(tokenResponse);
+    }
+
 }
