@@ -11,28 +11,26 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping(path = "/login")
+@CrossOrigin("*")
 public class UserController {
     @Autowired
     private UserService userService;
 
-   @PostMapping (consumes = "application/json")   //responseEntity è una classe generica per gestire le risposte hhtp
-   public OperationResult<LoginResponse> login(@RequestBody LoginRequest request) {
+   @PostMapping (path = "/login")   //responseEntity è una classe generica per gestire le risposte hhtp
+   public ResponseEntity<?> login(@RequestBody LoginRequest request) {
        try {
            LoginResponse response = userService.authenticate(request);
-           return OperationResult.ok(response, "login avvenuto");
+           return ResponseEntity.ok(response);
        } catch (UsernameNotFoundException | BadCredentialsException e) {
-            return OperationResult.ko("credenziali non valide");
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
        } catch (Exception e) {
-           return OperationResult.ko("Errore del server");
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                   .body("Errore interno: " + e.getMessage());
        }
-
-
    }
+
+
    }
