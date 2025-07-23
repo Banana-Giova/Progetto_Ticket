@@ -22,7 +22,7 @@ public class SecurityConfig {
                         r.requestMatchers("/login").permitAll()
                         .requestMatchers("/register").permitAll()
                         .requestMatchers("/new_email_token").permitAll()
-                        .requestMatchers("/confirm_email").permitAll()
+                        .requestMatchers("/email-confirmation").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

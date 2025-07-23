@@ -2,25 +2,23 @@ package it.degroup.it_tickets.service.User;
 
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
+import it.degroup.it_tickets.common.providers.EmailSender;
 import it.degroup.it_tickets.entity.User;
+import it.degroup.it_tickets.presentation.requests.EmailTokenRequest;
 import it.degroup.it_tickets.presentation.requests.LoginRequest;
 import it.degroup.it_tickets.presentation.requests.RegisterRequest;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
+import it.degroup.it_tickets.providers.models.EmailConfirmRegistrationTemplateMessage;
 import it.degroup.it_tickets.repository.UserRepository;
 import it.degroup.it_tickets.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.time.LocalDateTime;
@@ -41,7 +39,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private SpringTemplateEngine templateEngine;
     @Autowired
-    private JavaMailSender mailSender;
+    private EmailSender emailSender;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -61,7 +59,7 @@ public class UserServiceImpl implements UserService {
         User user = new User(email, request.getName(), request.getSurname(), hashedPassword);
         User new_user = repository.save(user);
 
-        // sendEmailToken(email);
+        sendEmailToken(email);
         return userMapper.userToRegisterResponse(new_user);
     }
 
@@ -79,21 +77,22 @@ public class UserServiceImpl implements UserService {
         user.setEmailExpiration(expiresAt);
         repository.save(user);
 
-        Context ctx = new Context();
-        ctx.setVariable("name", user.getName());
-        ctx.setVariable("confirmLink", frontendUrl + "/confirm_email?token=" + emailToken);
-        String body = templateEngine.process("confirm-email", ctx);
-
-        createHTMLEmail(user.getEmail(), "Conferma la tua email!", body);
+        emailSender.sendEmail(
+                user.getEmail(),
+                mailFrom,
+                "Conferma la tua email!",
+                EmailConfirmRegistrationTemplateMessage.create(templateEngine, frontendUrl, user, emailToken)
+        );
     }
 
     @Override
-    public void confirmEmailToken(String emailToken) {
-        User user = repository.findByEmailToken(emailToken)
-                .orElseThrow(() -> new InvalidOneTimeTokenException("Token non valido"));
+    public void confirmEmailToken(EmailTokenRequest emailToken) {
+        User user = repository.findByEmailToken(emailToken.getToken())
+                .orElseThrow(() -> new InvalidOneTimeTokenException("Token invalido"));
 
         if (user.getEmailExpiration().isBefore(LocalDateTime.now())) {
-            throw new IllegalStateException("Token scaduto! Si è pregati di generarne un altro");
+            repository.delete(user);
+            throw new IllegalStateException("Token scaduto! Si è pregati di registrare di nuovo l'account");
         }
         user.setEmailConfirmed(true);
         user.setEmailToken(null);
@@ -111,22 +110,5 @@ public class UserServiceImpl implements UserService {
 
         String tokenResponse = jwtUtil.generateToken(userFinded.get().getEmail());
         return new LoginResponse(tokenResponse);
-    }
-
-    // Da riposizionare
-    public void createHTMLEmail(String to, String subject, String htmlBody) {
-        MimeMessagePreparator preparator = mimeMessage -> {
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
-            helper.setFrom(mailFrom);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-        };
-        // MIME = Multipurpose Internet Mail Extensions -> Standard più avanzato di SMTP
-        try {
-            mailSender.send(preparator);
-        } catch (MailException e) {
-            throw new RuntimeException("Errore durante l'invio dell'email: ", e);
-        }
     }
 }
