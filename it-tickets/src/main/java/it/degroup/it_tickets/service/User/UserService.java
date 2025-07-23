@@ -8,7 +8,8 @@ import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 public interface UserService {
 
     RegisterResponse register(RegisterRequest dto);
-    void confirmEmail(String email_token);
+    void sendEmailToken(String user_email);
+    void confirmEmailToken(String email_token);
     LoginResponse authenticate(LoginRequest request) throws Exception;
-
+    void createHTMLEmail(String to, String subject, String htmlBody);
 }

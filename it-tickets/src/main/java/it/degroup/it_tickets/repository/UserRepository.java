@@ -1,14 +1,16 @@
 package it.degroup.it_tickets.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import it.degroup.it_tickets.entity.User;
-import org.springframework.stereotype.Repository;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
+
+    Optional<User> findByEmailToken(String token);
 
     boolean existsByEmail(String email);
 

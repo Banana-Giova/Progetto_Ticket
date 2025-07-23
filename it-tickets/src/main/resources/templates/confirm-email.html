@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        .container {
+          max-width: 600px;
+          margin: auto;
+          padding: 16px;
+          font-family: Arial, sans-serif;
+          background-color: #f9f9f9;
+          border: 1px solid #ddd;
+        }
+        .button {
+          display: inline-block;
+          padding: 12px 24px;
+          margin: 16px 0;
+          background-color: #007bff;
+          color: #fff !important;
+          text-decoration: none;
+          border-radius: 4px;
+        }
+        .footer {
+          font-size: x-small;
+          color: #777;
+          text-align: center;
+          margin-top: 24px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Ciao <span th:text="${name}">utente</span>,</h2>
+    <p>Grazie per esserti registrato! Clicca sul pulsante qui sotto per confermare la tua email:</p>
+
+    <a th:href="${confirmLink}" class="button">Conferma la tua email</a>
+
+    <p>Se il pulsante non funziona, copia e incolla questo link nel browser:</p>
+    <p><a th:href="${confirmLink}" th:text="${confirmLink}">confirm link</a></p>
+
+    <div class="footer">
+        <p>Se non hai richiesto questa email, puoi ignorarla.</p>
+        <p>&copy; 2025 Digital Engeneering</p>
+    </div>
+</div>
+</body>
+</html>
