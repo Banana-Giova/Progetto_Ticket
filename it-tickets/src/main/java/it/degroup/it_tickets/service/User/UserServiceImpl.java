@@ -66,30 +66,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void sendEmailToken(String user_email) {
-        var userFound = repository.findByEmail(user_email);
+    public void sendEmailToken(String userEmail) {
+        var userFound = repository.findByEmail(userEmail);
         if (userFound.isEmpty()) {
             throw new UsernameNotFoundException("Utente non presente nel sistema.");
         }
         User user = userFound.get();
-        String email_token = UUID.randomUUID().toString();
+        String emailToken = UUID.randomUUID().toString();
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(1);
 
-        user.setEmailToken(email_token);
+        user.setEmailToken(emailToken);
         user.setEmailExpiration(expiresAt);
         repository.save(user);
 
         Context ctx = new Context();
         ctx.setVariable("name", user.getName());
-        ctx.setVariable("confirmLink", frontendUrl + "/confirm_email?token=" + email_token);
+        ctx.setVariable("confirmLink", frontendUrl + "/confirm_email?token=" + emailToken);
         String body = templateEngine.process("confirm-email", ctx);
 
         createHTMLEmail(user.getEmail(), "Conferma la tua email!", body);
     }
 
     @Override
-    public void confirmEmailToken(String email_token) {
-        User user = repository.findByEmailToken(email_token)
+    public void confirmEmailToken(String emailToken) {
+        User user = repository.findByEmailToken(emailToken)
                 .orElseThrow(() -> new InvalidOneTimeTokenException("Token non valido"));
 
         if (user.getEmailExpiration().isBefore(LocalDateTime.now())) {
