@@ -5,6 +5,7 @@ import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.EmailTokenRequest;
 import it.degroup.it_tickets.presentation.requests.LoginRequest;
 import it.degroup.it_tickets.presentation.requests.RegisterRequest;
+import it.degroup.it_tickets.presentation.requests.ResetPasswordRequest;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 import it.degroup.it_tickets.service.User.UserService;
@@ -62,7 +63,8 @@ public class UserController {
         }
     }
 
-    @PostMapping(path = "/email-confirmation")
+    @PostMapping(path = "/email-confirmation",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<String>> confirmEmail(
            @RequestBody EmailTokenRequest emailToken) {
         try {
@@ -82,5 +84,28 @@ public class UserController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
         }
+    }
+
+    @PostMapping(path = "/reset-password",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OperationResult<String>> resetPassword(
+            @RequestBody ResetPasswordRequest request) {
+       try {
+           userService.resetPassword(request);
+           OperationResult<String> result =
+                   OperationResult.ok("RESET PASSWORD VALIDO", "Reset password avvenuto con successo!");
+           return ResponseEntity
+                   .ok()
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .body(result);
+
+       } catch (UsernameNotFoundException | BadCredentialsException | IllegalArgumentException exception) {
+           OperationResult<String> result =
+                   OperationResult.ko(exception.getMessage());
+           return ResponseEntity
+                   .status(HttpStatus.BAD_REQUEST)
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .body(result);
+       }
     }
 }

@@ -7,6 +7,7 @@ import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.EmailTokenRequest;
 import it.degroup.it_tickets.presentation.requests.LoginRequest;
 import it.degroup.it_tickets.presentation.requests.RegisterRequest;
+import it.degroup.it_tickets.presentation.requests.ResetPasswordRequest;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 import it.degroup.it_tickets.providers.models.EmailConfirmRegistrationTemplateMessage;
@@ -14,6 +15,7 @@ import it.degroup.it_tickets.repository.UserRepository;
 import it.degroup.it_tickets.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -110,5 +112,22 @@ public class UserServiceImpl implements UserService {
 
         String tokenResponse = jwtUtil.generateToken(userFinded.get().getEmail());
         return new LoginResponse(tokenResponse);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        var userFound = repository.findByEmail(request.getUserEmail());
+        if (userFound.isEmpty()) {
+            throw new UsernameNotFoundException("Utente non presente nel sistema.");
+        }
+        User user = userFound.get();
+
+        if (!user.checkPassword(request.getOldPassword())) {
+            throw new BadCredentialsException("Vecchia password errata.");
+        } else if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Password e conferma password non coincidono.");
+        }
+        user.setPassword(request.getNewPassword());
+        repository.save(user);
     }
 }
