@@ -9,7 +9,7 @@ public class EmailConfirmRegistrationTemplateMessage {
     public static String create(SpringTemplateEngine templateEngine, String frontendUrl, User user, String emailToken) {
         Context ctx = new Context();
         ctx.setVariable("name", user.getName());
-        ctx.setVariable("confirmLink", frontendUrl + "/confirm_email?token=" + emailToken);
+        ctx.setVariable("confirmLink", frontendUrl + "/email-confirmation?token=" + emailToken);
         String body = templateEngine.process("confirm-email", ctx);
 
         return body;
