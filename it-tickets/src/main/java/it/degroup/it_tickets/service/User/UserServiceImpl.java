@@ -133,8 +133,16 @@ public class UserServiceImpl implements UserService {
         } else if (passwordHelper.matches(request.getNewPassword(), user.getPassword()) ||
                    request.getNewPassword().equals(request.getOldPassword())) {
             throw new IllegalArgumentException("La nuova password dev'essere diversa da quella vecchia.");
+        } else if (user.getPasswordToken() != null) {
+            if (user.getPasswordExpiration().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("Password token scaduto! Si è pregati di rifare Password Dimenticata.");
+            } else if (!user.getPassword().equals(user.getPasswordToken())) {
+                throw new BadCredentialsException("Password token invalido! Si è pregati di rifare Password Dimenticata.");
+            }
         }
         user.setPassword(passwordHelper.encode(request.getNewPassword()));
+        user.setPasswordToken(null);
+        user.setEmailExpiration(null);
         repository.save(user);
     }
 
@@ -159,6 +167,8 @@ public class UserServiceImpl implements UserService {
                 )
         );
         user.setPassword(passwordHelper.encode(temp_password));
+        user.setPasswordToken(user.getPassword());
+        user.setPasswordExpiration(LocalDateTime.now().plusHours(1));
         repository.save(user);
     }
 }
