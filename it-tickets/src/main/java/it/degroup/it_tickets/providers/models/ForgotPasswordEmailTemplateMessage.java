@@ -6,7 +6,12 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 public class ForgotPasswordEmailTemplateMessage {
 
-    public static String create(SpringTemplateEngine templateEngine, String frontendUrl, User user, String tempPassword) {
+    public static String create(
+            SpringTemplateEngine templateEngine,
+            String frontendUrl,
+            User user,
+            String tempPassword
+    ) {
         Context ctx = new Context();
         ctx.setVariable("name", user.getName());
         ctx.setVariable("tempPassword", tempPassword);

@@ -82,7 +82,12 @@ public class UserServiceImpl implements UserService {
                 user.getEmail(),
                 mailFrom,
                 "Conferma la tua email",
-                EmailConfirmRegistrationTemplateMessage.create(templateEngine, frontendUrl, user, emailToken)
+                EmailConfirmRegistrationTemplateMessage.create(
+                        templateEngine,
+                        frontendUrl,
+                        user,
+                        emailToken
+                )
         );
     }
 
@@ -141,14 +146,18 @@ public class UserServiceImpl implements UserService {
         }
         User user = userFound.get();
 
-        String temp_password = passwordHelper.generateTemporaryPassword(12);
+        String temp_password = passwordHelper.generateTemporaryPassword(16);
         emailSender.sendEmail(
                 user.getEmail(),
                 mailFrom,
                 "Password dimenticata",
-                ForgotPasswordEmailTemplateMessage.create(templateEngine, frontendUrl, user, temp_password)
+                ForgotPasswordEmailTemplateMessage.create(
+                        templateEngine,
+                        frontendUrl,
+                        user,
+                        temp_password
+                )
         );
-
         user.setPassword(passwordHelper.encode(temp_password));
         repository.save(user);
     }

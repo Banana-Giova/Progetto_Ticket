@@ -6,7 +6,12 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 public class EmailConfirmRegistrationTemplateMessage {
 
-    public static String create(SpringTemplateEngine templateEngine, String frontendUrl, User user, String emailToken) {
+    public static String create(
+            SpringTemplateEngine templateEngine,
+            String frontendUrl,
+            User user,
+            String emailToken
+    ) {
         Context ctx = new Context();
         ctx.setVariable("name", user.getName());
         ctx.setVariable("confirmLink", frontendUrl + "/email-confirmation?token=" + emailToken);
