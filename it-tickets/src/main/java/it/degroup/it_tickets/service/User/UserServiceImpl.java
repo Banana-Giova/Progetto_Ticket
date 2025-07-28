@@ -5,13 +5,11 @@ import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
 import it.degroup.it_tickets.common.security.PasswordHelper;
 import it.degroup.it_tickets.entity.User;
-import it.degroup.it_tickets.presentation.requests.EmailTokenRequest;
-import it.degroup.it_tickets.presentation.requests.LoginRequest;
-import it.degroup.it_tickets.presentation.requests.RegisterRequest;
-import it.degroup.it_tickets.presentation.requests.ResetPasswordRequest;
+import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 import it.degroup.it_tickets.providers.models.EmailConfirmRegistrationTemplateMessage;
+import it.degroup.it_tickets.providers.models.ForgotPasswordEmailTemplateMessage;
 import it.degroup.it_tickets.repository.UserRepository;
 import it.degroup.it_tickets.security.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +81,7 @@ public class UserServiceImpl implements UserService {
         emailSender.sendEmail(
                 user.getEmail(),
                 mailFrom,
-                "Conferma la tua email!",
+                "Conferma la tua email",
                 EmailConfirmRegistrationTemplateMessage.create(templateEngine, frontendUrl, user, emailToken)
         );
     }
@@ -132,6 +130,26 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("La nuova password dev'essere diversa da quella vecchia.");
         }
         user.setPassword(passwordHelper.encode(request.getNewPassword()));
+        repository.save(user);
+    }
+
+    @Override
+    public void forgotPassword(ForgotPasswordRequest request) {
+        var userFound = repository.findByEmail(request.getUserEmail());
+        if (userFound.isEmpty()) {
+            throw new UsernameNotFoundException("Utente non presente nel sistema.");
+        }
+        User user = userFound.get();
+
+        String temp_password = passwordHelper.generateTemporaryPassword(12);
+        emailSender.sendEmail(
+                user.getEmail(),
+                mailFrom,
+                "Password dimenticata",
+                ForgotPasswordEmailTemplateMessage.create(templateEngine, frontendUrl, user, temp_password)
+        );
+
+        user.setPassword(passwordHelper.encode(temp_password));
         repository.save(user);
     }
 }

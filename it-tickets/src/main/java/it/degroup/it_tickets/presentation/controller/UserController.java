@@ -2,10 +2,7 @@ package it.degroup.it_tickets.presentation.controller;
 
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
 import it.degroup.it_tickets.common.models.OperationResult;
-import it.degroup.it_tickets.presentation.requests.EmailTokenRequest;
-import it.degroup.it_tickets.presentation.requests.LoginRequest;
-import it.degroup.it_tickets.presentation.requests.RegisterRequest;
-import it.degroup.it_tickets.presentation.requests.ResetPasswordRequest;
+import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 import it.degroup.it_tickets.service.User.UserService;
@@ -107,5 +104,28 @@ public class UserController {
                    .contentType(MediaType.APPLICATION_JSON)
                    .body(result);
        }
+    }
+
+    @PostMapping(path = "/forgot-password",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OperationResult<String>> resetPassword(
+            @RequestBody ForgotPasswordRequest request) {
+        try {
+            userService.forgotPassword(request);
+            OperationResult<String> result =
+                    OperationResult.ok("MAIL CON PASSWORD TEMPORANEA INVIATA", "Password temporanea generata ed inviata con successo!");
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+
+        } catch (RuntimeException exception) {
+            OperationResult<String> result =
+                    OperationResult.ko(exception.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+        }
     }
 }

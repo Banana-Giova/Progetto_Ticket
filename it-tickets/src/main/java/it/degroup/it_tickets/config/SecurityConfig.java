@@ -24,6 +24,7 @@ public class SecurityConfig {
                         .requestMatchers("/new_email_token").permitAll()
                         .requestMatchers("/email-confirmation").permitAll()
                         .requestMatchers("/reset-password").permitAll()
+                        .requestMatchers("/forgot-password").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
