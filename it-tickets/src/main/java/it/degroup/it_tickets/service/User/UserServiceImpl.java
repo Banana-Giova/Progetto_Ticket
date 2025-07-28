@@ -3,6 +3,7 @@ package it.degroup.it_tickets.service.User;
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
+import it.degroup.it_tickets.common.security.PasswordHelper;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.EmailTokenRequest;
 import it.degroup.it_tickets.presentation.requests.LoginRequest;
@@ -13,12 +14,12 @@ import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 import it.degroup.it_tickets.providers.models.EmailConfirmRegistrationTemplateMessage;
 import it.degroup.it_tickets.repository.UserRepository;
 import it.degroup.it_tickets.security.JwtUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -26,14 +27,13 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository repository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
     @Autowired
     private UserMapper userMapper;
     @Autowired
@@ -42,6 +42,8 @@ public class UserServiceImpl implements UserService {
     private SpringTemplateEngine templateEngine;
     @Autowired
     private EmailSender emailSender;
+    @Autowired
+    private PasswordHelper passwordHelper;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -57,8 +59,7 @@ public class UserServiceImpl implements UserService {
         } else if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("La password non coincide con il campo conferma password.");
         }
-        String hashedPassword = passwordEncoder.encode(request.getPassword());
-        User user = new User(email, request.getName(), request.getSurname(), hashedPassword);
+        User user = new User(email, request.getName(), request.getSurname(), passwordHelper.encode(request.getPassword()));
         User new_user = repository.save(user);
 
         sendEmailToken(email);
@@ -107,8 +108,8 @@ public class UserServiceImpl implements UserService {
         var userFinded = repository.findByEmail(request.getEmail());
         if (userFinded.isEmpty())
             throw new UsernameNotFoundException("utente non presente nel sistema.");
-        if (userFinded.get().checkPassword(request.getPassword()) == false)
-            throw new Exception("credenziali non valide");
+        // if (userFinded.get().checkPassword(request.getPassword()) == false)
+        //    throw new Exception("credenziali non valide");
 
         String tokenResponse = jwtUtil.generateToken(userFinded.get().getEmail());
         return new LoginResponse(tokenResponse);
@@ -122,12 +123,15 @@ public class UserServiceImpl implements UserService {
         }
         User user = userFound.get();
 
-        if (!user.checkPassword(request.getOldPassword())) {
+        if (!passwordHelper.matches(request.getOldPassword(), user.getPassword())) {
             throw new BadCredentialsException("Vecchia password errata.");
         } else if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("Password e conferma password non coincidono.");
+        } else if (passwordHelper.matches(request.getNewPassword(), user.getPassword()) ||
+                   request.getNewPassword().equals(request.getOldPassword())) {
+            throw new IllegalArgumentException("La nuova password dev'essere diversa da quella vecchia.");
         }
-        user.setPassword(request.getNewPassword());
+        user.setPassword(passwordHelper.encode(request.getNewPassword()));
         repository.save(user);
     }
 }

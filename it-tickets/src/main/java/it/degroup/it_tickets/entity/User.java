@@ -57,9 +57,4 @@ public class User {
         this.passwordExpiration = null;
         this.emailExpiration = null;
     }
-
-
-    public Boolean checkPassword(String password) {
-        return this.password.equals(password);
-    }
 }
