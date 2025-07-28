@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -56,5 +57,33 @@ public class User {
         this.emailToken = null;
         this.passwordExpiration = null;
         this.emailExpiration = null;
+    }
+
+    public boolean isEmailTokenExpired(boolean throws_ex) {
+        if (this.getEmailExpiration().isBefore(LocalDateTime.now()))
+            throw new IllegalStateException("Email token scaduto! Si è pregati di registrare di nuovo l'account");
+        return this.getEmailExpiration().isBefore(LocalDateTime.now());
+    }
+
+    public boolean isPasswordTokenExpired(boolean throws_ex) {
+        if (this.getPasswordExpiration().isBefore(LocalDateTime.now()))
+            throw new IllegalStateException("Password token scaduto! Si è pregati di rifare Password Dimenticata.");
+        return this.getPasswordExpiration().isBefore(LocalDateTime.now());
+    }
+
+    public boolean isPasswordTokenValid(boolean throws_ex) {
+        if (!this.getPassword().equals(this.getPasswordToken()))
+            throw new BadCredentialsException("Password token invalido! Si è pregati di rifare Password Dimenticata.");
+        return this.getPassword().equals(this.getPasswordToken());
+    }
+
+    public boolean passwordTokenCheck() {
+        if (this.passwordToken != null) {
+            boolean passwordTokenExpired = this.isPasswordTokenExpired(true);
+            boolean passwordTokenValid = this.isPasswordTokenValid(true);
+            return passwordTokenExpired && passwordTokenValid;
+        }
+        return false;
+
     }
 }

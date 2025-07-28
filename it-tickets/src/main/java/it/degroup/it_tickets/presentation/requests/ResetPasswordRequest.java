@@ -1,12 +1,15 @@
 package it.degroup.it_tickets.presentation.requests;
 
+import it.degroup.it_tickets.common.validation.password.PasswordConfirmation;
+import it.degroup.it_tickets.common.validation.password.PasswordMatches;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class ResetPasswordRequest {
+@PasswordMatches
+public class ResetPasswordRequest implements PasswordConfirmation {
 
     @Email
     @NotBlank(message = "User email cannot be blank")

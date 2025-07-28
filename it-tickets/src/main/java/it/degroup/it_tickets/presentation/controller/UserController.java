@@ -63,7 +63,7 @@ public class UserController {
     @PostMapping(path = "/email-confirmation",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<String>> confirmEmail(
-           @RequestBody EmailTokenRequest emailToken) {
+            @Valid @RequestBody EmailTokenRequest emailToken) {
         try {
             userService.confirmEmailToken(emailToken);
             OperationResult<String> result =
@@ -86,7 +86,7 @@ public class UserController {
     @PostMapping(path = "/reset-password",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<String>> resetPassword(
-            @RequestBody ResetPasswordRequest request) {
+            @Valid @RequestBody ResetPasswordRequest request) {
        try {
            userService.resetPassword(request);
            OperationResult<String> result =
@@ -109,7 +109,7 @@ public class UserController {
     @PostMapping(path = "/forgot-password",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<String>> resetPassword(
-            @RequestBody ForgotPasswordRequest request) {
+            @Valid @RequestBody ForgotPasswordRequest request) {
         try {
             userService.forgotPassword(request);
             OperationResult<String> result =

@@ -54,10 +54,10 @@ public class UserServiceImpl implements UserService {
         boolean existingUser = repository.existsByEmail(email);
         if (existingUser) {
             throw new DuplicateException(String.format("Un utente registrato con la seguente mail '%s' già esiste.", email));
-        } else if (!request.getPassword().equals(request.getConfirmPassword())) {
+        } else if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("La password non coincide con il campo conferma password.");
         }
-        User user = new User(email, request.getName(), request.getSurname(), passwordHelper.encode(request.getPassword()));
+        User user = new User(email, request.getName(), request.getSurname(), passwordHelper.encode(request.getNewPassword()));
         User new_user = repository.save(user);
 
         sendEmailToken(email);
@@ -96,9 +96,9 @@ public class UserServiceImpl implements UserService {
         User user = repository.findByEmailToken(emailToken.getToken())
                 .orElseThrow(() -> new InvalidOneTimeTokenException("Token invalido"));
 
-        if (user.getEmailExpiration().isBefore(LocalDateTime.now())) {
+        if (user.isEmailTokenExpired(false)) {
             repository.delete(user);
-            throw new IllegalStateException("Token scaduto! Si è pregati di registrare di nuovo l'account");
+            throw new IllegalStateException("Email token scaduto! Si è pregati di registrare di nuovo l'account");
         }
         user.setEmailConfirmed(true);
         user.setEmailToken(null);
@@ -128,18 +128,13 @@ public class UserServiceImpl implements UserService {
 
         if (!passwordHelper.matches(request.getOldPassword(), user.getPassword())) {
             throw new BadCredentialsException("Vecchia password errata.");
-        } else if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new IllegalArgumentException("Password e conferma password non coincidono.");
         } else if (passwordHelper.matches(request.getNewPassword(), user.getPassword()) ||
                    request.getNewPassword().equals(request.getOldPassword())) {
             throw new IllegalArgumentException("La nuova password dev'essere diversa da quella vecchia.");
-        } else if (user.getPasswordToken() != null) {
-            if (user.getPasswordExpiration().isBefore(LocalDateTime.now())) {
-                throw new IllegalStateException("Password token scaduto! Si è pregati di rifare Password Dimenticata.");
-            } else if (!user.getPassword().equals(user.getPasswordToken())) {
-                throw new BadCredentialsException("Password token invalido! Si è pregati di rifare Password Dimenticata.");
-            }
         }
+
+        user.passwordTokenCheck();
+
         user.setPassword(passwordHelper.encode(request.getNewPassword()));
         user.setPasswordToken(null);
         user.setEmailExpiration(null);
