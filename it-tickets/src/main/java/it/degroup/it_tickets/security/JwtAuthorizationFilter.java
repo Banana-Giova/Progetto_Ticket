@@ -48,7 +48,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         try {
             String authHeader = request.getHeader(AUTH_HEADER_KEY) != null ? request.getHeader(AUTH_HEADER_KEY) : request.getHeader(REFRESH_HEADER_KEY);
-            if ((request.getRequestURI().contains("login") || request.getRequestURI().contains("register")) && authHeader == null) {
+            if ((request.getRequestURI().contains("login") || request.getRequestURI().contains("register")) || request.getRequestURI().contains("email-confirmation") && authHeader == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
