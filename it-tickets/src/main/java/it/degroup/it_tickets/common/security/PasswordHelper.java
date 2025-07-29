@@ -29,7 +29,7 @@ public class PasswordHelper {
                     "[a-zA-Z0-9!@#$%^&*]{8,24}$"
     );
 
-    public static String generateTemporaryPassword(int length) {
+    public String generateTemporaryPassword(int length) {
         if (length < 8 || length > 24) {
             throw new IllegalArgumentException("Lunghezza password deve essere tra 8 e 24");
         }

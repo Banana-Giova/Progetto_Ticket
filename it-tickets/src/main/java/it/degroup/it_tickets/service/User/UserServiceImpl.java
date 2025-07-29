@@ -67,6 +67,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public LoginResponse authenticate(LoginRequest request) throws Exception {
+        var userFound = repository.findByEmail(request.getEmail());
+        if (userFound.isEmpty())
+            throw new UsernameNotFoundException("utente non presente nel sistema.");
+        if (!passwordHelper.matches(request.getPassword(), userFound.get().getPassword()))
+            throw new Exception("credenziali non valide");
+        String tokenResponse = jwtUtil.generateToken(userFound.get().getEmail());
+        userFound.get().setToken(tokenResponse);
+        repository.saveAndFlush(userFound.get());
+        System.out.println("TOKEN salvato: " + userFound.get().getToken());
+
+        return new LoginResponse(tokenResponse);
+    }
+
+    @Override
     public void sendEmailToken(String userEmail) {
         var userFound = repository.findByEmail(userEmail);
         if (userFound.isEmpty()) {
@@ -106,21 +121,6 @@ public class UserServiceImpl implements UserService {
         user.setEmailToken(null);
         user.setEmailExpiration(null);
         repository.save(user);
-    }
-
-    @Override
-    public LoginResponse authenticate(LoginRequest request) throws Exception {
-        var userFinded = repository.findByEmail(request.getEmail());
-        if (userFinded.isEmpty())
-            throw new UsernameNotFoundException("utente non presente nel sistema.");
-        if (!passwordEncoder.matches(request.getPassword(), userFinded.get().getPassword()))
-            throw new Exception("credenziali non valide");
-        String tokenResponse = jwtUtil.generateToken(userFinded.get().getEmail());
-        userFinded.get().setToken(tokenResponse);
-        repository.saveAndFlush(userFinded.get());
-        System.out.println("TOKEN salvato: " + userFinded.get().getToken());
-
-        return new LoginResponse(tokenResponse);
     }
 
     @Override

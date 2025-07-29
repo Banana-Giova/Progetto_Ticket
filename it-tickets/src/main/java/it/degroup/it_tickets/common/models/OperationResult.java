@@ -1,11 +1,8 @@
 package it.degroup.it_tickets.common.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
-@Data
-@AllArgsConstructor @NoArgsConstructor
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class OperationResult<T> {
 
     private static final String OK_MESSAGE = "Operazione avvenuta con successo.";
