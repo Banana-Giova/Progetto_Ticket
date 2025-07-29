@@ -1,6 +1,7 @@
 package it.degroup.it_tickets.presentation.controller;
 
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
+import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
@@ -32,7 +33,7 @@ public class UserController {
         try {
             LoginResponse response = userService.authenticate(request);
             return ResponseEntity.ok(response);
-        } catch (UsernameNotFoundException | BadCredentialsException e) {
+        } catch (UsernameNotFoundException | BadCredentialsException | EmailNotConfirmedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

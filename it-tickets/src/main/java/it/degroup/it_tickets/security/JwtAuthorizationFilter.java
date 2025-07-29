@@ -1,6 +1,7 @@
 package it.degroup.it_tickets.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.service.MyUserDetailService;
 import it.degroup.it_tickets.service.User.UserService;
 import jakarta.servlet.FilterChain;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -58,7 +60,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 String token = jwtUtil.resolveToken(request);
                 String email = jwtUtil.getEmailFromToken(token);
                 UserDetails user = userdetail.loadUserByUsername(email);
-                if(user == null) throw new Exception("utente non autenticato");
+                if(user == null) throw new UsernameNotFoundException("Utente non autenticato.");
+                if(!user.isEnabled()) throw new EmailNotConfirmedException("Utente non autenticato.");
 
                 if (jwtUtil.isTokenExpired(token))  this.refreshToken(request,response);
                 else {
@@ -68,7 +71,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 }
                 filterChain.doFilter(request, response);
             }
-        }catch (Exception e){
+        } catch (Exception e){
             errorDetails.put("message", "Authentication Error");
             errorDetails.put("details",e.getMessage());
             response.setStatus(HttpStatus.FORBIDDEN.value());

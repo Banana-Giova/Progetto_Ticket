@@ -26,6 +26,10 @@ public class MyUserDetailService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User( //restituisce un oggetto User di Spring Security, che implementa l'interfaccia UserDetails.
                 user.get().getEmail(),  //è lo username da autenticare
                 user.get().getPassword(), // è la password dall'utente che viene confrontata con quella ricevuta dall'utente
+                user.get().getEmailConfirmed(),
+                true,
+                true,
+                true,
                 Collections.emptyList() //rappresenta la lista vuota di ruoli/ permessi
         );
     }

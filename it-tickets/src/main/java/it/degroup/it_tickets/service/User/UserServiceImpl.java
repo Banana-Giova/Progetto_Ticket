@@ -1,6 +1,7 @@
 package it.degroup.it_tickets.service.User;
 
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
+import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
 import it.degroup.it_tickets.common.security.PasswordHelper;
@@ -50,7 +51,6 @@ public class UserServiceImpl implements UserService {
     private String mailFrom;
 
     @Override
-    @Transactional
     public RegisterResponse register(RegisterRequest request) {
         String email = request.getEmail();
         boolean existingUser = repository.existsByEmail(email);
@@ -74,10 +74,14 @@ public class UserServiceImpl implements UserService {
         }
         User user = userFound.get();
 
-        if (!passwordHelper.matches(request.getPassword(), user.getPassword()))
+        if (!user.getEmailConfirmed()) {
+            throw new EmailNotConfirmedException(
+                    "L'email dell'account non è stata verificata. Si è pregati di controllare la propria casella di posta elettronica."
+            );
+        } else if (!passwordHelper.matches(request.getPassword(), user.getPassword()))
             throw new RuntimeException("Credenziali non valide.");
 
-        String tokenResponse = null;
+        String tokenResponse;
         try {
             tokenResponse = jwtUtil.generateToken(user.getEmail());
         } catch (Exception e) {
