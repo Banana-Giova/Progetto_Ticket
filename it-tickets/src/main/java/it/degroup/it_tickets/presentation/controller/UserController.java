@@ -1,5 +1,6 @@
 package it.degroup.it_tickets.presentation.controller;
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
+import it.degroup.it_tickets.common.exceptions.EmailAlreadyConfirmedException;
 import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
@@ -33,8 +34,7 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (UsernameNotFoundException | BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Errore interno: " + e.getMessage());
         }
@@ -44,9 +44,9 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE  )
     public ResponseEntity<OperationResult<RegisterResponse>> register(
-            @Valid @RequestBody RegisterRequest registerRequest) {
+            @Valid @RequestBody RegisterRequest request) {
         try {
-            RegisterResponse response = userService.register(registerRequest);
+            RegisterResponse response = userService.register(request);
             OperationResult<RegisterResponse> result =
                     OperationResult.ok(response, "Creazione utente completata con successo!");
             return ResponseEntity
@@ -54,9 +54,9 @@ public class UserController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
 
-        } catch (DuplicateException | IllegalArgumentException exception) {
+        } catch (DuplicateException | IllegalArgumentException e) {
             OperationResult<RegisterResponse> result =
-                    OperationResult.ko(exception.getMessage());
+                    OperationResult.ko(e.getMessage());
 
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
@@ -68,19 +68,25 @@ public class UserController {
     @PostMapping(path = "/email-confirmation",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<String>> confirmEmail(
-            @Valid @RequestBody EmailTokenRequest emailToken) {
+            @Valid @RequestBody EmailTokenRequest request) {
         try {
-            userService.confirmEmailToken(emailToken);
+            userService.confirmEmailToken(request);
             OperationResult<String> result =
                     OperationResult.ok("TOKEN VALIDO", "Conferma token avvenuta con successo!");
             return ResponseEntity
                     .ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
-
-        } catch (InvalidOneTimeTokenException | IllegalStateException exception) {
+        } catch (EmailAlreadyConfirmedException e) {
             OperationResult<String> result =
-                    OperationResult.ko(exception.getMessage());
+                    OperationResult.ko(e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.GONE)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+        } catch (InvalidOneTimeTokenException | IllegalStateException e) {
+            OperationResult<String> result =
+                    OperationResult.ko(e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -101,9 +107,9 @@ public class UserController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
 
-        } catch (UsernameNotFoundException | BadCredentialsException | IllegalArgumentException exception) {
+        } catch (UsernameNotFoundException | BadCredentialsException | IllegalArgumentException e) {
             OperationResult<String> result =
-                    OperationResult.ko(exception.getMessage());
+                    OperationResult.ko(e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -124,9 +130,9 @@ public class UserController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
 
-        } catch (RuntimeException exception) {
+        } catch (RuntimeException e) {
             OperationResult<String> result =
-                    OperationResult.ko(exception.getMessage());
+                    OperationResult.ko(e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .contentType(MediaType.APPLICATION_JSON)

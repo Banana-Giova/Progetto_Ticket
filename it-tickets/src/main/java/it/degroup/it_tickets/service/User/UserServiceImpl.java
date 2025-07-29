@@ -1,6 +1,7 @@
 package it.degroup.it_tickets.service.User;
 
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
+import it.degroup.it_tickets.common.exceptions.EmailAlreadyConfirmedException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
 import it.degroup.it_tickets.common.security.PasswordHelper;
@@ -23,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -67,16 +68,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponse authenticate(LoginRequest request) throws Exception {
+    public LoginResponse authenticate(LoginRequest request) {
         var userFound = repository.findByEmail(request.getEmail());
-        if (userFound.isEmpty())
-            throw new UsernameNotFoundException("utente non presente nel sistema.");
-        if (!passwordHelper.matches(request.getPassword(), userFound.get().getPassword()))
-            throw new Exception("credenziali non valide");
-        String tokenResponse = jwtUtil.generateToken(userFound.get().getEmail());
-        userFound.get().setToken(tokenResponse);
-        repository.saveAndFlush(userFound.get());
-        System.out.println("TOKEN salvato: " + userFound.get().getToken());
+        if (userFound.isEmpty()) {
+            throw new UsernameNotFoundException("Utente non presente nel sistema.");
+        }
+        User user = userFound.get();
+
+        if (!passwordHelper.matches(request.getPassword(), user.getPassword()))
+            throw new RuntimeException("Credenziali non valide.");
+
+        String tokenResponse = null;
+        try {
+            tokenResponse = jwtUtil.generateToken(user.getEmail());
+        } catch (Exception e) {
+            throw new RuntimeException("Errore generazione token JWT", e);
+        }
+        user.setToken(tokenResponse);
+        repository.saveAndFlush(user);
+        System.out.println("TOKEN SALVATO: " + user.getToken());
 
         return new LoginResponse(tokenResponse);
     }
@@ -116,6 +126,8 @@ public class UserServiceImpl implements UserService {
         if (user.isEmailTokenExpired(false)) {
             repository.delete(user);
             throw new IllegalStateException("Email token scaduto! Si è pregati di registrare di nuovo l'account");
+        } else if (user.getEmailConfirmed()) {
+            throw new EmailAlreadyConfirmedException("Questo account è già confermato.");
         }
         user.setEmailConfirmed(true);
         user.setEmailToken(null);
