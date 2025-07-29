@@ -14,8 +14,9 @@ import it.degroup.it_tickets.presentation.requests.RegisterRequest;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
+
 @Service
-@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     @Autowired
@@ -54,11 +55,24 @@ public class UserServiceImpl implements UserService {
         var userFinded = repository.findByEmail(request.getEmail());
         if (userFinded.isEmpty())
             throw new UsernameNotFoundException("utente non presente nel sistema.");
-        if (userFinded.get().checkPassword(request.getPassword()) == false)
+        if (!passwordEncoder.matches(request.getPassword(), userFinded.get().getPassword()))
             throw new Exception("credenziali non valide");
-
         String tokenResponse = jwtUtil.generateToken(userFinded.get().getEmail());
+        userFinded.get().setToken(tokenResponse);
+        repository.saveAndFlush(userFinded.get());
+        System.out.println("TOKEN salvato: " + userFinded.get().getToken());
+
         return new LoginResponse(tokenResponse);
+    }
+
+    @Override
+    public Optional<String> getTokenByEmail(String email) {
+        return repository.getTokenByEmail(email);
+    }
+
+    @Override
+    public Optional<User> findUserByEmail(String email) {
+        return repository.findByEmail(email);
     }
 
 }

@@ -20,7 +20,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-   @PostMapping (path = "/login")   //responseEntity è una classe generica per gestire le risposte hhtp
+   @PostMapping (path = "/login", consumes = "application/json")   //responseEntity è una classe generica per gestire le risposte hhtp
    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
        try {
            LoginResponse response = userService.authenticate(request);
@@ -28,6 +28,7 @@ public class UserController {
        } catch (UsernameNotFoundException | BadCredentialsException e) {
            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
        } catch (Exception e) {
+           e.printStackTrace();
            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                    .body("Errore interno: " + e.getMessage());
        }
@@ -64,6 +65,12 @@ public class UserController {
         userService.confirmEmail(token);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
+
+    @GetMapping(path = "/test")
+    public ResponseEntity<Void> test() {
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
 
 
 
