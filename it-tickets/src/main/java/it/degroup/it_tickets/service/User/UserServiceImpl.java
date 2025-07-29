@@ -1,7 +1,6 @@
 package it.degroup.it_tickets.service.User;
 
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
-import it.degroup.it_tickets.common.exceptions.EmailAlreadyConfirmedException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
 import it.degroup.it_tickets.common.security.PasswordHelper;
@@ -126,8 +125,6 @@ public class UserServiceImpl implements UserService {
         if (user.isEmailTokenExpired(false)) {
             repository.delete(user);
             throw new IllegalStateException("Email token scaduto! Si è pregati di registrare di nuovo l'account");
-        } else if (user.getEmailConfirmed()) {
-            throw new EmailAlreadyConfirmedException("Questo account è già confermato.");
         }
         user.setEmailConfirmed(true);
         user.setEmailToken(null);

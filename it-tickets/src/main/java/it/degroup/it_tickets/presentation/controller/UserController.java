@@ -1,8 +1,9 @@
 package it.degroup.it_tickets.presentation.controller;
+
 import it.degroup.it_tickets.common.exceptions.DuplicateException;
-import it.degroup.it_tickets.common.exceptions.EmailAlreadyConfirmedException;
 import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.*;
+import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 import it.degroup.it_tickets.service.User.UserService;
 import jakarta.validation.Valid;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -75,13 +75,6 @@ public class UserController {
                     OperationResult.ok("TOKEN VALIDO", "Conferma token avvenuta con successo!");
             return ResponseEntity
                     .ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(result);
-        } catch (EmailAlreadyConfirmedException e) {
-            OperationResult<String> result =
-                    OperationResult.ko(e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.GONE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
         } catch (InvalidOneTimeTokenException | IllegalStateException e) {
