@@ -1,7 +1,6 @@
 package it.degroup.it_tickets.security;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.degroup.it_tickets.entity.User;
-import it.degroup.it_tickets.presentation.requests.LoginRequest;
 import it.degroup.it_tickets.service.MyUserDetailService;
 import it.degroup.it_tickets.service.User.UserService;
 import jakarta.servlet.FilterChain;
@@ -16,11 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
@@ -48,7 +46,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         try {
             String authHeader = request.getHeader(AUTH_HEADER_KEY) != null ? request.getHeader(AUTH_HEADER_KEY) : request.getHeader(REFRESH_HEADER_KEY);
-            if ((request.getRequestURI().contains("login") || request.getRequestURI().contains("register")) || request.getRequestURI().contains("email-confirmation") && authHeader == null) {
+            if ((request.getRequestURI().contains("login")
+                    || request.getRequestURI().contains("register"))
+                    || request.getRequestURI().contains("email-confirmation")
+                    || request.getRequestURI().contains("forgot-password")
+                    && authHeader == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
