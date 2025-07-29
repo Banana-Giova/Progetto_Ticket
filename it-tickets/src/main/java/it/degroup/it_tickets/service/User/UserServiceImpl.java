@@ -24,6 +24,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -49,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private String mailFrom;
 
     @Override
+    @Transactional
     public RegisterResponse register(RegisterRequest request) {
         String email = request.getEmail();
         boolean existingUser = repository.existsByEmail(email);
@@ -111,10 +113,13 @@ public class UserServiceImpl implements UserService {
         var userFinded = repository.findByEmail(request.getEmail());
         if (userFinded.isEmpty())
             throw new UsernameNotFoundException("utente non presente nel sistema.");
-        // if (userFinded.get().checkPassword(request.getPassword()) == false)
-        //    throw new Exception("credenziali non valide");
-
+        if (!passwordEncoder.matches(request.getPassword(), userFinded.get().getPassword()))
+            throw new Exception("credenziali non valide");
         String tokenResponse = jwtUtil.generateToken(userFinded.get().getEmail());
+        userFinded.get().setToken(tokenResponse);
+        repository.saveAndFlush(userFinded.get());
+        System.out.println("TOKEN salvato: " + userFinded.get().getToken());
+
         return new LoginResponse(tokenResponse);
     }
 
@@ -166,4 +171,14 @@ public class UserServiceImpl implements UserService {
         user.setPasswordExpiration(LocalDateTime.now().plusHours(1));
         repository.save(user);
     }
+    @Override
+    public Optional<String> getTokenByEmail(String email) {
+        return repository.getTokenByEmail(email);
+    }
+
+    @Override
+    public Optional<User> findUserByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+
 }

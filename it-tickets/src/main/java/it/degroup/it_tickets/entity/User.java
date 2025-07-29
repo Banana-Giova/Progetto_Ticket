@@ -19,7 +19,8 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(unique = true)
+    private String token;
     @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
@@ -57,6 +58,7 @@ public class User {
         this.emailToken = null;
         this.passwordExpiration = null;
         this.emailExpiration = null;
+        this.token = null;
     }
 
     public boolean isEmailTokenExpired(boolean throws_ex) {

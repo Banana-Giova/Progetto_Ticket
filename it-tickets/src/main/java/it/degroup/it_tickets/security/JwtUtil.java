@@ -1,25 +1,36 @@
 package it.degroup.it_tickets.security;
-
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import it.degroup.it_tickets.entity.User;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.security.SignatureException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Component
 public class JwtUtil  {
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private static final int MINUTES = 60;
+
+    private final JwtParser jwtParser;
+    private static final String SECRET = "questo_e_un_segreto_sicuro_di_32_byte!";
+    private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    private static final int MINUTES = 1;
+    private final String TOKEN_HEADER = "Authorization";
+    private final String TOKEN_PREFIX = "Bearer ";
+
+    public JwtUtil() {
+        this.jwtParser = Jwts
+                .parser()
+                .setSigningKey(SECRET_KEY)
+                .build();
+    }
+
 
     public  String generateToken(String email) {
         var now = Instant.now();
@@ -27,7 +38,7 @@ public class JwtUtil  {
                 .subject(email)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(MINUTES, ChronoUnit.MINUTES)))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -35,9 +46,13 @@ public class JwtUtil  {
         return getTokenBody(token).getSubject();
     }
 
-    public static Boolean validateToken(String token, UserDetails userDetails) {
+    public String getEmailFromToken(String token) {
+        return parseJwtClaims(token).getSubject(); // il subject è l'email
+    }
+
+    public  Boolean validateToken(String token, User user) {
         final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return username.equals(user.getEmail()) && !isTokenExpired(token);
     }
 
     private static Claims getTokenBody(String token) {
@@ -53,8 +68,56 @@ public class JwtUtil  {
         }
     }
 
-    private static boolean isTokenExpired(String token) {
+    public static boolean isTokenExpired(String token) {
         Claims claims = getTokenBody(token);
         return claims.getExpiration().before(new Date());
     }
+
+
+    public String resolveToken(HttpServletRequest request) {
+
+        String bearerToken = request.getHeader(TOKEN_HEADER);
+        if (bearerToken != null && bearerToken.startsWith(TOKEN_PREFIX)) {
+            return bearerToken.substring(TOKEN_PREFIX.length());
+        }
+        return null;
+    }
+
+    public boolean validateClaims(Claims claims) throws AuthenticationException {
+        try {
+            return claims.getExpiration().after(new Date());
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    private Claims parseJwtClaims(String token) {
+        try {
+            return jwtParser.parseClaimsJws(token).getBody();
+        } catch (ExpiredJwtException ex) {
+            // Token valido ma scaduto → puoi decidere se accettarlo parzialmente
+            return ex.getClaims(); // opzionale: puoi ancora leggere i claims
+        } catch (JwtException ex) {
+            // Firma non valida, malformato, ecc.
+            throw new AccessDeniedException("Token non valido: " + ex.getMessage());
+        }
+    }
+
+    public Claims resolveClaims(HttpServletRequest req) {
+        try {
+            String token = resolveToken(req);
+            if (token != null) {
+                return parseJwtClaims(token);
+            }
+            return null;
+        } catch (ExpiredJwtException ex) {
+            req.setAttribute("expired", ex.getMessage());
+            throw ex;
+        } catch (Exception ex) {
+            req.setAttribute("invalid", ex.getMessage());
+            throw ex;
+        }
+    }
+
+
 }
