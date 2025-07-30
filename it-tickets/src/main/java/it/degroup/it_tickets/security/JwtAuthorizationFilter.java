@@ -2,6 +2,7 @@ package it.degroup.it_tickets.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.degroup.it_tickets.service.MyUserDetailService;
+import it.degroup.it_tickets.service.User.MyUserDetails;
 import it.degroup.it_tickets.service.User.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,14 +30,14 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final UserService userserivce;
     private final JwtUtil jwtUtil;
     private final ObjectMapper mapper;
-    private final MyUserDetailService userdetail;
+    private final MyUserDetailService userDetailService;
 
     // Inietti il servizio nel costruttore
-    public JwtAuthorizationFilter(UserService userserivce, JwtUtil jwtUtil, ObjectMapper mapper, MyUserDetailService userdetail) {
+    public JwtAuthorizationFilter(UserService userserivce, JwtUtil jwtUtil, ObjectMapper mapper, MyUserDetailService userDetailService) {
         this.userserivce = userserivce;
         this.jwtUtil = jwtUtil;
         this.mapper = mapper;
-        this.userdetail = userdetail;
+        this.userDetailService = userDetailService;
 
     }
 
@@ -50,6 +51,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                     || request.getRequestURI().contains("register"))
                     || request.getRequestURI().contains("email-confirmation")
                     || request.getRequestURI().contains("forgot-password")
+
                     && authHeader == null) {
                 filterChain.doFilter(request, response);
                 return;
@@ -57,7 +59,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             if(authHeader != null){
                 String token = jwtUtil.resolveToken(request);
                 String email = jwtUtil.getEmailFromToken(token);
-                UserDetails user = userdetail.loadUserByUsername(email);
+                MyUserDetails user = userDetailService.loadUserByUsername(email);
                 if(user == null) throw new Exception("utente non autenticato");
 
                 if (jwtUtil.isTokenExpired(token))  this.refreshToken(request,response);

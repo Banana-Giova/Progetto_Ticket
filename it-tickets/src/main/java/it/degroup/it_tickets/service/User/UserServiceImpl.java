@@ -50,7 +50,6 @@ public class UserServiceImpl implements UserService {
     private String mailFrom;
 
     @Override
-    @Transactional
     public RegisterResponse register(RegisterRequest request) {
         String email = request.getEmail();
         boolean existingUser = repository.existsByEmail(email);
@@ -59,7 +58,7 @@ public class UserServiceImpl implements UserService {
         } else if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("La password non coincide con il campo conferma password.");
         }
-        User user = new User(email, request.getName(), request.getSurname(), passwordHelper.encode(request.getNewPassword()));
+        User user = new User(email, request.getName(), request.getSurname(), passwordHelper.encode(request.getNewPassword())); //devo recupeare l'utente dal db perchè quello recuperato dal ceurity context non nessun legame con il repository
         User new_user = repository.save(user);
 
         sendEmailToken(email);
