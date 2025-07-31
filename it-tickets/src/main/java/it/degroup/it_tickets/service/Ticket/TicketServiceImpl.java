@@ -1,6 +1,7 @@
 package it.degroup.it_tickets.service.Ticket;
 
 import it.degroup.it_tickets.entity.Category;
+import it.degroup.it_tickets.entity.Status;
 import it.degroup.it_tickets.entity.Ticket;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.TicketRequest;
@@ -44,6 +45,7 @@ public class TicketServiceImpl implements TicketService{
         ticket.setTitle(request.getTitle());
         ticket.setIs_priority(request.getIs_priority());
         ticket.setCreated_at(LocalDateTime.now());
+        ticket.setStatus(Status.TO_DO);
 
         return ticketRepository.save(ticket);
     }
