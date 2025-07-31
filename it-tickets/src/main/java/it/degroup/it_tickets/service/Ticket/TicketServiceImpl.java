@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Transactional
@@ -46,4 +47,14 @@ public class TicketServiceImpl implements TicketService{
 
         return ticketRepository.save(ticket);
     }
+
+    @Override
+    public List<Ticket> findTicketsByUser(Long userId) {
+        List<Ticket> tickets = ticketRepository.findByUserId(userId);
+        if (!userRepository.existsById(userId))
+            throw new RuntimeException("Utente non trovato");
+        return tickets;
+    }
+
+
 }

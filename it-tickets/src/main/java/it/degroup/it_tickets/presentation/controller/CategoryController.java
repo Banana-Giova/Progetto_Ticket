@@ -1,7 +1,7 @@
 package it.degroup.it_tickets.presentation.controller;
 
 import it.degroup.it_tickets.entity.Category;
-import it.degroup.it_tickets.service.category.CategoryService;
+import it.degroup.it_tickets.service.category.CategoryServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,7 @@ import java.util.List;
 public class CategoryController {
 
     @Autowired
-    CategoryService service;
+    CategoryServiceImpl service;
 
     @GetMapping(path = "/categories", produces = "application/json")
     public ResponseEntity<?> getAllCategories() {
