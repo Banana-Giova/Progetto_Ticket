@@ -8,11 +8,12 @@ import it.degroup.it_tickets.common.security.PasswordHelper;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
-import it.degroup.it_tickets.presentation.responses.RegisterResponse;
+import it.degroup.it_tickets.presentation.responses.ProfileResponse;
 import it.degroup.it_tickets.providers.models.EmailConfirmRegistrationTemplateMessage;
 import it.degroup.it_tickets.providers.models.ForgotPasswordEmailTemplateMessage;
 import it.degroup.it_tickets.repository.UserRepository;
 import it.degroup.it_tickets.security.JwtUtil;
+import it.degroup.it_tickets.service.Role.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
     @Autowired
+    private RoleService roleService;
+    @Autowired
     private JwtUtil jwtUtil;
     @Autowired
     private SpringTemplateEngine templateEngine;
@@ -51,7 +54,7 @@ public class UserServiceImpl implements UserService {
     private String mailFrom;
 
     @Override
-    public RegisterResponse register(RegisterRequest request) {
+    public ProfileResponse register(RegisterRequest request) {
         String email = request.getEmail();
         boolean existingUser = repository.existsByEmail(email);
         if (existingUser) {
@@ -61,9 +64,10 @@ public class UserServiceImpl implements UserService {
         }
         User user = new User(email, request.getName(), request.getSurname(), passwordHelper.encode(request.getNewPassword()));
         User new_user = repository.save(user);
+        roleService.assignRoleToUser(email, "Utente");
 
         sendEmailToken(email);
-        return userMapper.userToRegisterResponse(new_user);
+        return userMapper.userToProfileResponse(new_user);
     }
 
     @Override

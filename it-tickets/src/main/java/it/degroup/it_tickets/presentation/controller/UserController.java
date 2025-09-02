@@ -5,7 +5,7 @@ import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
-import it.degroup.it_tickets.presentation.responses.RegisterResponse;
+import it.degroup.it_tickets.presentation.responses.ProfileResponse;
 import it.degroup.it_tickets.service.User.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,11 +44,11 @@ public class UserController {
     @PostMapping(path = "/register",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE  )
-    public ResponseEntity<OperationResult<RegisterResponse>> register(
+    public ResponseEntity<OperationResult<ProfileResponse>> register(
             @Valid @RequestBody RegisterRequest request) {
         try {
-            RegisterResponse response = userService.register(request);
-            OperationResult<RegisterResponse> result =
+            ProfileResponse response = userService.register(request);
+            OperationResult<ProfileResponse> result =
                     OperationResult.ok(response, "Creazione utente completata con successo!");
             return ResponseEntity
                     .ok()
@@ -56,7 +56,7 @@ public class UserController {
                     .body(result);
 
         } catch (DuplicateException | IllegalArgumentException e) {
-            OperationResult<RegisterResponse> result =
+            OperationResult<ProfileResponse> result =
                     OperationResult.ko(e.getMessage());
 
             return ResponseEntity
@@ -132,5 +132,28 @@ public class UserController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
         }
+    }
+
+    @GetMapping(path = "/profile",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OperationResult<ProfileResponse>> profileFetch () {
+        return null;
+       /* try {
+            userService.forgotPassword(request);
+            OperationResult<String> result =
+                    OperationResult.ok("MAIL CON PASSWORD TEMPORANEA INVIATA", "Password temporanea generata ed inviata con successo!");
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+
+        } catch (RuntimeException e) {
+            OperationResult<String> result =
+                    OperationResult.ko(e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+        }*/
     }
 }
