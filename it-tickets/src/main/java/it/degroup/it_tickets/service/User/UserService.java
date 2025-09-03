@@ -19,6 +19,7 @@ public interface UserService {
     Optional<String> getTokenByEmail(String email);
     Optional<User> findUserByEmail(String email);
     void resetPassword(ResetPasswordRequest request);
-    void forgotPassword(ForgotPasswordRequest request);
+    void forgotPassword(OnlyEmailRequest request);
+    ProfileResponse profileFetch(OnlyEmailRequest request);
 
 }

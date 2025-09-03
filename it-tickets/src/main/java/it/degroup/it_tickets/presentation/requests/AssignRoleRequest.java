@@ -6,7 +6,10 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
-public class CreateRoleRequest {
-    @NotBlank(message = "Name cannot be blank")
-    private String name;
+public class AssignRoleRequest {
+    @Email
+    @NotBlank(message = "Email cannot be blank")
+    private String email;
+    @NotBlank(message = "Role cannot be blank")
+    private String roleName;
 }

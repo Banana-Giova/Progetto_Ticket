@@ -5,7 +5,7 @@ import it.degroup.it_tickets.presentation.responses.RoleResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface RoleMapper {
 
     @Mapping(target = "id", source = "id")

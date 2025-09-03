@@ -34,7 +34,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private UserRepository repository;
+    private UserRepository userRepository;
     @Autowired
     private UserMapper userMapper;
     @Autowired
@@ -56,14 +56,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public ProfileResponse register(RegisterRequest request) {
         String email = request.getEmail();
-        boolean existingUser = repository.existsByEmail(email);
+        boolean existingUser = userRepository.existsByEmail(email);
         if (existingUser) {
             throw new DuplicateException(String.format("Un utente registrato con la seguente mail '%s' già esiste.", email));
         } else if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("La password non coincide con il campo conferma password.");
         }
         User user = new User(email, request.getName(), request.getSurname(), passwordHelper.encode(request.getNewPassword()));
-        User new_user = repository.save(user);
+        User new_user = userRepository.save(user);
         roleService.assignRoleToUser(email, "Utente");
 
         sendEmailToken(email);
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginResponse authenticate(LoginRequest request) {
-        var userFound = repository.findByEmail(request.getEmail());
+        var userFound = userRepository.findByEmail(request.getEmail());
         if (userFound.isEmpty()) {
             throw new UsernameNotFoundException("Utente non presente nel sistema.");
         }
@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("Errore generazione token JWT", e);
         }
         user.setToken(tokenResponse);
-        repository.saveAndFlush(user);
+        userRepository.saveAndFlush(user);
         System.out.println("TOKEN SALVATO: " + user.getToken());
 
         return new LoginResponse(tokenResponse);
@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void sendEmailToken(String userEmail) {
-        var userFound = repository.findByEmail(userEmail);
+        var userFound = userRepository.findByEmail(userEmail);
         if (userFound.isEmpty()) {
             throw new UsernameNotFoundException("Utente non presente nel sistema.");
         }
@@ -110,7 +110,7 @@ public class UserServiceImpl implements UserService {
 
         user.setEmailToken(emailToken);
         user.setEmailExpiration(expiresAt);
-        repository.save(user);
+        userRepository.save(user);
 
         emailSender.sendEmail(
                 user.getEmail(),
@@ -127,22 +127,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void confirmEmailToken(EmailTokenRequest emailToken) {
-        User user = repository.findByEmailToken(emailToken.getToken())
+        User user = userRepository.findByEmailToken(emailToken.getToken())
                 .orElseThrow(() -> new InvalidOneTimeTokenException("Token invalido"));
 
         if (user.isEmailTokenExpired(false)) {
-            repository.delete(user);
+            userRepository.delete(user);
             throw new IllegalStateException("Email token scaduto! Si è pregati di registrare di nuovo l'account");
         }
         user.setEmailConfirmed(true);
         user.setEmailToken(null);
         user.setEmailExpiration(null);
-        repository.save(user);
+        userRepository.save(user);
     }
 
     @Override
     public void resetPassword(ResetPasswordRequest request) {
-        var userFound = repository.findByEmail(request.getUserEmail());
+        var userFound = userRepository.findByEmail(request.getUserEmail());
         if (userFound.isEmpty()) {
             throw new UsernameNotFoundException("Utente non presente nel sistema.");
         }
@@ -160,12 +160,12 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordHelper.encode(request.getNewPassword()));
         user.setPasswordToken(null);
         user.setEmailExpiration(null);
-        repository.save(user);
+        userRepository.save(user);
     }
 
     @Override
-    public void forgotPassword(ForgotPasswordRequest request) {
-        var userFound = repository.findByEmail(request.getUserEmail());
+    public void forgotPassword(OnlyEmailRequest request) {
+        var userFound = userRepository.findByEmail(request.getUserEmail());
         if (userFound.isEmpty()) {
             throw new UsernameNotFoundException("Utente non presente nel sistema.");
         }
@@ -186,16 +186,24 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordHelper.encode(temp_password));
         user.setPasswordToken(user.getPassword());
         user.setPasswordExpiration(LocalDateTime.now().plusHours(1));
-        repository.save(user);
+        userRepository.save(user);
     }
+
+    @Override
+    public ProfileResponse profileFetch(OnlyEmailRequest request) {
+        User user = userRepository.findByEmail(request.getUserEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Utente non esistente: " + request.getUserEmail()));
+        return userMapper.userToProfileResponse(user);
+    }
+
     @Override
     public Optional<String> getTokenByEmail(String email) {
-        return repository.getTokenByEmail(email);
+        return userRepository.getTokenByEmail(email);
     }
 
     @Override
     public Optional<User> findUserByEmail(String email) {
-        return repository.findByEmail(email);
+        return userRepository.findByEmail(email);
     }
 
 }

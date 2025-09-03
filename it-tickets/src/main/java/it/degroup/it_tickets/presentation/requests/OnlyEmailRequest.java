@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class ForgotPasswordRequest {
+public class OnlyEmailRequest {
 
     @Email
     @NotBlank(message = "User email cannot be blank")

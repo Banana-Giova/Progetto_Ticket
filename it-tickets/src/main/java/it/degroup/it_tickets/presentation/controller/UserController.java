@@ -114,7 +114,7 @@ public class UserController {
     @PostMapping(path = "/forgot-password",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<String>> resetPassword(
-            @Valid @RequestBody ForgotPasswordRequest request) {
+            @Valid @RequestBody OnlyEmailRequest request) {
         try {
             userService.forgotPassword(request);
             OperationResult<String> result =
@@ -134,26 +134,27 @@ public class UserController {
         }
     }
 
-    @GetMapping(path = "/profile",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OperationResult<ProfileResponse>> profileFetch () {
-        return null;
-       /* try {
-            userService.forgotPassword(request);
-            OperationResult<String> result =
-                    OperationResult.ok("MAIL CON PASSWORD TEMPORANEA INVIATA", "Password temporanea generata ed inviata con successo!");
+    @PostMapping(path = "/profile_fetch",
+                 consumes = MediaType.APPLICATION_JSON_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OperationResult<ProfileResponse>> profileFetch (
+            @Valid @RequestBody OnlyEmailRequest request) {
+       try {
+            ProfileResponse response = userService.profileFetch(request);
+            OperationResult<ProfileResponse> result =
+                    OperationResult.ok(response, "Fetch del profile utente eseguito con successo!");
             return ResponseEntity
                     .ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
 
         } catch (RuntimeException e) {
-            OperationResult<String> result =
+            OperationResult<ProfileResponse> result =
                     OperationResult.ko(e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(result);
-        }*/
+        }
     }
 }
