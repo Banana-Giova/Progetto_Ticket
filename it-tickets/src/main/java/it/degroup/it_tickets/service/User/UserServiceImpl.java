@@ -5,6 +5,7 @@ import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
 import it.degroup.it_tickets.common.security.PasswordHelper;
+import it.degroup.it_tickets.entity.Role;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
@@ -25,8 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -87,7 +90,9 @@ public class UserServiceImpl implements UserService {
 
         String tokenResponse;
         try {
-            tokenResponse = jwtUtil.generateToken(user.getEmail());
+            tokenResponse = jwtUtil.generateToken(user);
+            if (tokenResponse.isEmpty() || tokenResponse.isBlank())
+                throw new RuntimeException("Token nullo!");
         } catch (Exception e) {
             throw new RuntimeException("Errore generazione token JWT", e);
         }
@@ -95,7 +100,10 @@ public class UserServiceImpl implements UserService {
         userRepository.saveAndFlush(user);
         System.out.println("TOKEN SALVATO: " + user.getToken());
 
-        return new LoginResponse(tokenResponse);
+        return new LoginResponse(tokenResponse,
+                                 user.getId(), user.getEmail(),
+                                 user.getName(), user.getSurname(),
+                                 user.getRoleList());
     }
 
     @Override
@@ -180,6 +188,7 @@ public class UserServiceImpl implements UserService {
                         templateEngine,
                         frontendUrl,
                         user,
+                        request.getUserEmail(),
                         temp_password
                 )
         );

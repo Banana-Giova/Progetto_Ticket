@@ -1,17 +1,20 @@
 package it.degroup.it_tickets.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.authentication.BadCredentialsException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "user_account")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -59,6 +62,20 @@ public class User {
         this.passwordExpiration = null;
         this.emailExpiration = null;
         this.token = null;
+        this.roles = new HashSet<>();
+    }
+
+    public List<String> getRoleList() {
+        Set<Role> roleSet = this.getRoles();
+        if (roleSet == null || roleSet.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> roleList = new ArrayList<>();
+        for (Role role : new ArrayList<>(roleSet)) {
+            roleList.add(role.getName());
+        }
+        return roleList;
     }
 
     public boolean isEmailTokenExpired(boolean throws_ex) {

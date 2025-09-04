@@ -32,14 +32,14 @@ public class JwtUtil  {
     }
 
 
-    public  String generateToken(String email) {
+    public String generateToken(User user) {
         var now = Instant.now();
         return Jwts.builder()
-                .subject(email)
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(MINUTES, ChronoUnit.MINUTES)))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
-                .compact();
+                   .subject(user.getEmail())
+                   .issuedAt(Date.from(now))
+                   .expiration(Date.from(now.plus(MINUTES, ChronoUnit.MINUTES)))
+                   .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                   .compact();
     }
 
     public static String extractUsername(String token) {

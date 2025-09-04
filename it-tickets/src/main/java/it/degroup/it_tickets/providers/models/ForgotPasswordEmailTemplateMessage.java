@@ -10,12 +10,13 @@ public class ForgotPasswordEmailTemplateMessage {
             SpringTemplateEngine templateEngine,
             String frontendUrl,
             User user,
+            String userMail,
             String tempPassword
     ) {
         Context ctx = new Context();
         ctx.setVariable("name", user.getName());
         ctx.setVariable("tempPassword", tempPassword);
-        ctx.setVariable("resetLink", frontendUrl + "/reset-password");
+        ctx.setVariable("resetLink", frontendUrl + "/reset-password?email=" + userMail);
         String body = templateEngine.process("forgot-password", ctx);
 
         return body;

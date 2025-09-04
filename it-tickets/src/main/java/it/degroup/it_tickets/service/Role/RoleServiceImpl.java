@@ -63,10 +63,10 @@ public class RoleServiceImpl implements RoleService {
         }
 
         return role.getUsers()
-                .stream()
-                .sorted(Comparator.comparing(User::getId))
-                .map(userMapper::userToProfileResponse)
-                .collect(Collectors.toList());
+                   .stream()
+                   .sorted(Comparator.comparing(User::getId))
+                   .map(userMapper::userToProfileResponse)
+                   .collect(Collectors.toList());
     }
 
     @Override
@@ -75,10 +75,32 @@ public class RoleServiceImpl implements RoleService {
                 .orElseThrow(() -> new IllegalArgumentException("Utente non esistente: " + email));
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Ruolo non esistente: " + roleName));
-        if (role.getUsers().contains(user))
-            throw new IllegalArgumentException("Ruolo " + roleName + " già assegnato all'utente con email " + email);
 
+        if (!user.getRoles().isEmpty()) {
+            boolean alreadyAssigned = user.getRoles()
+                    .stream()
+                    .anyMatch(r -> roleName.equals(r.getName()));
+            if (alreadyAssigned)
+                throw new IllegalArgumentException("Ruolo " + roleName + " già assegnato all'utente con email " + email);
+        }
         user.getRoles().add(role);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void removeRoleFromUser(String email, String roleName) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non esistente: " + email));
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new IllegalArgumentException("Ruolo non esistente: " + roleName));
+
+        if (!user.getRoles().contains(role)) {
+            throw new IllegalStateException("Utente non ha il ruolo: " + roleName);
+        }
+
+        user.getRoles().remove(role);
+        role.getUsers().remove(user);
+
         userRepository.save(user);
     }
 

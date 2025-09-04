@@ -10,4 +10,5 @@ public interface RoleService {
     RoleResponse getRole(String roleName);
     List<ProfileResponse> getUsersByRole(String roleName);
     void assignRoleToUser(String email, String roleName);
+    void removeRoleFromUser(String email, String roleName);
 }
