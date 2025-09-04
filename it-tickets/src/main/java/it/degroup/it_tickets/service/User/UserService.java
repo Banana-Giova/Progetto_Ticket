@@ -6,6 +6,7 @@ import it.degroup.it_tickets.presentation.requests.LoginRequest;
 import it.degroup.it_tickets.presentation.requests.RegisterRequest;
 import it.degroup.it_tickets.presentation.requests.ResetPasswordRequest;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
+//import it.degroup.it_tickets.presentation.responses.PagingResult;
 import it.degroup.it_tickets.presentation.responses.RegisterResponse;
 
 import java.util.Optional;
@@ -20,5 +21,4 @@ public interface UserService {
     Optional<User> findUserByEmail(String email);
     void resetPassword(ResetPasswordRequest request);
     void forgotPassword(ForgotPasswordRequest request);
-
 }

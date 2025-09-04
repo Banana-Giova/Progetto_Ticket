@@ -1,0 +1,20 @@
+package it.degroup.it_tickets.presentation.responses;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TicketResponse {
+    private Long id;
+    private String title;
+    private String description;
+    private Boolean isPriority;
+    private String categoryName;
+    private LocalDateTime createdAt;
+    private String status; // se hai un enum Status
+}

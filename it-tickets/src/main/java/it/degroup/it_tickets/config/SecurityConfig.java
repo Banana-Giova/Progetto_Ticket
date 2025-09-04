@@ -32,7 +32,10 @@ public class SecurityConfig {
                         .requestMatchers("/categories").permitAll()
                         .requestMatchers("/test").authenticated()
                         .requestMatchers("/add-ticket").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/tickets").authenticated()
+                        .requestMatchers("/tickets/status").authenticated()
+
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
