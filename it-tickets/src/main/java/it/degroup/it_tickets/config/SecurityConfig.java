@@ -29,8 +29,13 @@ public class SecurityConfig {
                         .requestMatchers("/email-confirmation").permitAll()
                         .requestMatchers("/reset-password").permitAll()
                         .requestMatchers("/forgot-password").permitAll()
+                        .requestMatchers("/categories").permitAll()
                         .requestMatchers("/test").authenticated()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/add-ticket").authenticated()
+                        .requestMatchers("/tickets").authenticated()
+                        .requestMatchers("/tickets/status").authenticated()
+
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
