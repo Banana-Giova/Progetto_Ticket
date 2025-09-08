@@ -11,12 +11,13 @@ public class ForgotPasswordEmailTemplateMessage {
             String frontendUrl,
             User user,
             String userMail,
-            String tempPassword
+            String tempPassword,
+            String passwordToken
     ) {
         Context ctx = new Context();
         ctx.setVariable("name", user.getName());
         ctx.setVariable("tempPassword", tempPassword);
-        ctx.setVariable("resetLink", frontendUrl + "/reset-password?email=" + userMail);
+        ctx.setVariable("resetLink", frontendUrl + "/reset-password?passToken=" + passwordToken);
         String body = templateEngine.process("forgot-password", ctx);
 
         return body;

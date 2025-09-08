@@ -3,6 +3,7 @@ package it.degroup.it_tickets.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -84,25 +85,27 @@ public class User {
         return this.getEmailExpiration().isBefore(LocalDateTime.now());
     }
 
-    public boolean isPasswordTokenExpired(boolean throws_ex) {
-        if (this.getPasswordExpiration().isBefore(LocalDateTime.now()))
+    public boolean isPasswordTokenNotExpired() {
+        if (this.getPasswordExpiration() == null || !this.getPasswordExpiration().isAfter(LocalDateTime.now())) {
             throw new IllegalStateException("Password token scaduto! Si è pregati di rifare Password Dimenticata.");
-        return this.getPasswordExpiration().isBefore(LocalDateTime.now());
-    }
-
-    public boolean isPasswordTokenValid(boolean throws_ex) {
-        if (!this.getPassword().equals(this.getPasswordToken()))
-            throw new BadCredentialsException("Password token invalido! Si è pregati di rifare Password Dimenticata.");
-        return this.getPassword().equals(this.getPasswordToken());
-    }
-
-    public boolean passwordTokenCheck() {
-        if (this.passwordToken != null) {
-            boolean passwordTokenExpired = this.isPasswordTokenExpired(true);
-            boolean passwordTokenValid = this.isPasswordTokenValid(true);
-            return passwordTokenExpired && passwordTokenValid;
         }
-        return false;
+        return true;
+    }
 
+    public boolean isPasswordTokenValid(String token) {
+        String currToken = this.getPasswordToken();
+        if (currToken == null || token == null)
+            throw new BadCredentialsException("Password token invalido! Si è pregati di rifare Password Dimenticata.");
+        if (!currToken.equals(token))
+            throw new BadCredentialsException("Password token invalido! Si è pregati di rifare Password Dimenticata.");
+
+        return true;
+    }
+
+    public boolean passwordTokenCheck(String token) {
+        if (this.passwordToken == null) {
+            throw new InvalidOneTimeTokenException("Nessun token associato all’utente!");
+        }
+        return isPasswordTokenNotExpired() && isPasswordTokenValid(token);
     }
 }

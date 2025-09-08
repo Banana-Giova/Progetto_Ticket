@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "it.degroup.it_tickets")
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
@@ -48,6 +48,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<OperationResult<?>> handleUsernameNotFound(UsernameNotFoundException ex) {
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        log.warn("UsernameNotFoundException: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -57,6 +58,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<OperationResult<?>> handleBadCredentials(BadCredentialsException ex) {
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        log.warn("BadCredentialsException: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,6 +69,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailNotConfirmedException.class)
     public ResponseEntity<OperationResult<?>> handleEmailNotConfirmed(EmailNotConfirmedException ex) {
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        log.warn("EmailNotConfirmedException: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -76,6 +79,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.security.authentication.ott.InvalidOneTimeTokenException.class)
     public ResponseEntity<OperationResult<?>> handleInvalidOneTimeToken(Exception ex) {
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        log.warn("InvalidOneTimeTokenException: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)

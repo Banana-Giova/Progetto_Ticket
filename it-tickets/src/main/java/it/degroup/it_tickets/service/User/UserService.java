@@ -6,14 +6,14 @@ import it.degroup.it_tickets.presentation.requests.LoginRequest;
 import it.degroup.it_tickets.presentation.requests.RegisterRequest;
 import it.degroup.it_tickets.presentation.requests.ResetPasswordRequest;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
-import it.degroup.it_tickets.presentation.responses.ProfileResponse;
+import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
 //import it.degroup.it_tickets.presentation.responses.PagingResult;
 
 import java.util.Optional;
 
 public interface UserService {
 
-    ProfileResponse register(RegisterRequest dto);
+    UserResponseWithRoles register(RegisterRequest dto);
     void sendEmailToken(String user_email);
     void confirmEmailToken(EmailTokenRequest email_token);
     LoginResponse authenticate(LoginRequest request);
@@ -21,5 +21,5 @@ public interface UserService {
     Optional<User> findUserByEmail(String email);
     void resetPassword(ResetPasswordRequest request);
     void forgotPassword(OnlyEmailRequest request);
-    ProfileResponse profileFetch(OnlyEmailRequest request);
+    UserResponseWithRoles profileFetch();
 }

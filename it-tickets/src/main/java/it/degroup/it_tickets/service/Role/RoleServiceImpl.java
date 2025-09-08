@@ -4,8 +4,8 @@ import it.degroup.it_tickets.common.mappers.RoleMapper;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.entity.Role;
 import it.degroup.it_tickets.entity.User;
-import it.degroup.it_tickets.presentation.responses.ProfileResponse;
-import it.degroup.it_tickets.presentation.responses.RoleResponse;
+import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
+import it.degroup.it_tickets.presentation.responses.RoleResponseWithUsers;
 import it.degroup.it_tickets.repository.RoleRepository;
 import it.degroup.it_tickets.repository.UserRepository;
 
@@ -39,22 +39,22 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponse createRole(String roleName) {
+    public RoleResponseWithUsers createRole(String roleName) {
         if (roleRepository.existsByName(roleName))
             throw new IllegalArgumentException("Ruolo già esistente: " + roleName);
         Role new_role = roleRepository.save(new Role(roleName));
-        return roleMapper.roleToRoleResponse(new_role);
+        return roleMapper.roleToRoleResponseWithUsers(new_role);
     }
 
     @Override
-    public RoleResponse getRole(String roleName) {
+    public RoleResponseWithUsers getRole(String roleName) {
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Ruolo non esistente: " + roleName));
-        return roleMapper.roleToRoleResponse(role);
+        return roleMapper.roleToRoleResponseWithUsers(role);
     }
 
     @Override
-    public List<ProfileResponse> getUsersByRole(String roleName) {
+    public List<UserResponseWithRoles> getUsersByRole(String roleName) {
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Ruolo non esistente: " + roleName));
 
@@ -65,7 +65,7 @@ public class RoleServiceImpl implements RoleService {
         return role.getUsers()
                    .stream()
                    .sorted(Comparator.comparing(User::getId))
-                   .map(userMapper::userToProfileResponse)
+                   .map(userMapper::userToUserResponseWithRoles)
                    .collect(Collectors.toList());
     }
 

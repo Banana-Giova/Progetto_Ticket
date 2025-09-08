@@ -1,14 +1,14 @@
 package it.degroup.it_tickets.service.Role;
 
-import it.degroup.it_tickets.presentation.responses.ProfileResponse;
-import it.degroup.it_tickets.presentation.responses.RoleResponse;
+import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
+import it.degroup.it_tickets.presentation.responses.RoleResponseWithUsers;
 
 import java.util.List;
 
 public interface RoleService {
-    RoleResponse createRole(String roleName);
-    RoleResponse getRole(String roleName);
-    List<ProfileResponse> getUsersByRole(String roleName);
+    RoleResponseWithUsers createRole(String roleName);
+    RoleResponseWithUsers getRole(String roleName);
+    List<UserResponseWithRoles> getUsersByRole(String roleName);
     void assignRoleToUser(String email, String roleName);
     void removeRoleFromUser(String email, String roleName);
 }

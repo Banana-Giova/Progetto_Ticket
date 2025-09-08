@@ -5,11 +5,10 @@ import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
 import it.degroup.it_tickets.common.security.PasswordHelper;
-import it.degroup.it_tickets.entity.Role;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
-import it.degroup.it_tickets.presentation.responses.ProfileResponse;
+import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
 import it.degroup.it_tickets.providers.models.EmailConfirmRegistrationTemplateMessage;
 import it.degroup.it_tickets.providers.models.ForgotPasswordEmailTemplateMessage;
 import it.degroup.it_tickets.repository.UserRepository;
@@ -20,16 +19,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.lang.reflect.MalformedParametersException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,8 +57,9 @@ public class UserServiceImpl implements UserService {
     private String mailFrom;
 
     @Override
-    public ProfileResponse register(RegisterRequest request) {
+    public UserResponseWithRoles register(RegisterRequest request) {
         String email = request.getEmail();
+        log.info("Password selezionata: " + request.getNewPassword());
         boolean existingUser = userRepository.existsByEmail(email);
         if (existingUser) {
             throw new DuplicateException(String.format("Un utente registrato con la seguente mail '%s' già esiste.", email));
@@ -70,7 +71,7 @@ public class UserServiceImpl implements UserService {
         roleService.assignRoleToUser(email, "Utente");
 
         sendEmailToken(email);
-        return userMapper.userToProfileResponse(new_user);
+        return userMapper.userToUserResponseWithRoles(new_user);
     }
 
     @Override
@@ -86,7 +87,7 @@ public class UserServiceImpl implements UserService {
                     "L'email dell'account non è stata verificata. Si è pregati di controllare la propria casella di posta elettronica."
             );
         } else if (!passwordHelper.matches(request.getPassword(), user.getPassword()))
-            throw new RuntimeException("Credenziali non valide.");
+            throw new BadCredentialsException("Credenziali non valide.");
 
         String tokenResponse;
         try {
@@ -150,10 +151,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void resetPassword(ResetPasswordRequest request) {
-        var userFound = userRepository.findByEmail(request.getUserEmail());
-        if (userFound.isEmpty()) {
-            throw new UsernameNotFoundException("Utente non presente nel sistema.");
+        Optional<User> userFound;
+        boolean isAuthed;
+        if (request.getUserEmail().isBlank()) {
+            userFound = userRepository.findByPasswordToken(request.getPasswordToken());
+            isAuthed = false;
+        } else if (request.getPasswordToken().isBlank()) {
+            userFound = userRepository.findByEmail(request.getUserEmail());
+            isAuthed = true;
+        } else {
+            throw new MalformedParametersException("Richiesta malformata.");
         }
+        if (userFound.isEmpty())
+            throw new UsernameNotFoundException("Utente non presente nel sistema.");
+
         User user = userFound.get();
 
         if (!passwordHelper.matches(request.getOldPassword(), user.getPassword())) {
@@ -163,11 +174,15 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("La nuova password dev'essere diversa da quella vecchia.");
         }
 
-        user.passwordTokenCheck();
+        if (!isAuthed)
+            if (!user.passwordTokenCheck(request.getPasswordToken()))
+                throw new InvalidOneTimeTokenException("Password token invalido!");
 
         user.setPassword(passwordHelper.encode(request.getNewPassword()));
         user.setPasswordToken(null);
-        user.setEmailExpiration(null);
+        user.setPasswordExpiration(null);
+        log.info("Nuova password utente: {}", request.getNewPassword());
+
         userRepository.save(user);
     }
 
@@ -179,7 +194,8 @@ public class UserServiceImpl implements UserService {
         }
         User user = userFound.get();
 
-        String temp_password = passwordHelper.generateTemporaryPassword(16);
+        String tempPassword = passwordHelper.generateTemporaryPassword(16);
+        String passwordToken = UUID.randomUUID().toString();
         emailSender.sendEmail(
                 user.getEmail(),
                 mailFrom,
@@ -189,20 +205,22 @@ public class UserServiceImpl implements UserService {
                         frontendUrl,
                         user,
                         request.getUserEmail(),
-                        temp_password
+                        tempPassword,
+                        passwordToken
                 )
         );
-        user.setPassword(passwordHelper.encode(temp_password));
-        user.setPasswordToken(user.getPassword());
+        user.setPassword(passwordHelper.encode(tempPassword));
+        user.setPasswordToken(passwordToken);
         user.setPasswordExpiration(LocalDateTime.now().plusHours(1));
         userRepository.save(user);
     }
 
     @Override
-    public ProfileResponse profileFetch(OnlyEmailRequest request) {
-        User user = userRepository.findByEmail(request.getUserEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Utente non esistente: " + request.getUserEmail()));
-        return userMapper.userToProfileResponse(user);
+    public UserResponseWithRoles profileFetch() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
+        User user = userDetails.getUser();
+        return userMapper.userToUserResponseWithRoles(user);
     }
 
     @Override

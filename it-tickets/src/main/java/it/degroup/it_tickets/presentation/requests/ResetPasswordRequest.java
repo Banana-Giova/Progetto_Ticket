@@ -11,9 +11,9 @@ import lombok.Data;
 @PasswordMatches
 public class ResetPasswordRequest implements PasswordConfirmation {
 
-    @Email
-    @NotBlank(message = "User email cannot be blank")
     private String userEmail;
+
+    private String passwordToken;
 
     @NotBlank(message = "Old password cannot be blank")
     private String oldPassword;

@@ -3,8 +3,8 @@ package it.degroup.it_tickets.presentation.controller;
 import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.AssignRoleRequest;
 import it.degroup.it_tickets.presentation.requests.CreateRoleRequest;
-import it.degroup.it_tickets.presentation.responses.ProfileResponse;
-import it.degroup.it_tickets.presentation.responses.RoleResponse;
+import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
+import it.degroup.it_tickets.presentation.responses.RoleResponseWithUsers;
 import it.degroup.it_tickets.service.Role.RoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +27,11 @@ public class RoleController {
     @PostMapping(path = "/create",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OperationResult<RoleResponse>> createRole(
+    public ResponseEntity<OperationResult<RoleResponseWithUsers>> createRole(
             @Valid @RequestBody CreateRoleRequest request) {
 
-        RoleResponse response = roleService.createRole(request.getName());
-        OperationResult<RoleResponse> result =
+        RoleResponseWithUsers response = roleService.createRole(request.getName());
+        OperationResult<RoleResponseWithUsers> result =
                 OperationResult.ok(response, "Creazione ruolo completata con successo!");
 
         return ResponseEntity
@@ -42,11 +42,11 @@ public class RoleController {
 
     @GetMapping(path = "/get",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OperationResult<RoleResponse>> getRole(
+    public ResponseEntity<OperationResult<RoleResponseWithUsers>> getRole(
             @RequestParam String roleName) {
 
-        RoleResponse response = roleService.getRole(roleName);
-        OperationResult<RoleResponse> result =
+        RoleResponseWithUsers response = roleService.getRole(roleName);
+        OperationResult<RoleResponseWithUsers> result =
                 OperationResult.ok(response, "Ottenimento dati sul ruolo completato con successo!");
 
         return ResponseEntity
@@ -57,11 +57,11 @@ public class RoleController {
 
     @GetMapping(path = "/get-users-by-role",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OperationResult<List<ProfileResponse>>> getUsersByRole(
+    public ResponseEntity<OperationResult<List<UserResponseWithRoles>>> getUsersByRole(
             @RequestParam String roleName) {
 
-        List<ProfileResponse> response = roleService.getUsersByRole(roleName);
-        OperationResult<List<ProfileResponse>> result =
+        List<UserResponseWithRoles> response = roleService.getUsersByRole(roleName);
+        OperationResult<List<UserResponseWithRoles>> result =
                 OperationResult.ok(response, "Ottenimento lista utenti completato con successo!");
 
         return ResponseEntity

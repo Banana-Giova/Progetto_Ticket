@@ -1,24 +1,22 @@
 package it.degroup.it_tickets.presentation.controller;
 
-import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.common.models.OperationResult;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
-import it.degroup.it_tickets.presentation.responses.ProfileResponse;
+import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
 import it.degroup.it_tickets.service.User.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin("*")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     @Autowired
@@ -31,24 +29,17 @@ public class UserController {
 
     @PostMapping (path = "/login", consumes = "application/json")   //responseEntity è una classe generica per gestire le risposte hhtp
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        try {
-            LoginResponse response = userService.authenticate(request);
-            return ResponseEntity.ok(response);
-        } catch (UsernameNotFoundException | BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Errore interno: " + e.getMessage());
-        }
+        LoginResponse response = userService.authenticate(request);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping(path = "/register",
                  consumes = MediaType.APPLICATION_JSON_VALUE,
                  produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OperationResult<ProfileResponse>> register(
+    public ResponseEntity<OperationResult<UserResponseWithRoles>> register(
             @Valid @RequestBody RegisterRequest request) {
-        ProfileResponse response = userService.register(request);
-        OperationResult<ProfileResponse> result = OperationResult.ok(response, "Creazione utente completata con successo!");
+        UserResponseWithRoles response = userService.register(request);
+        OperationResult<UserResponseWithRoles> result = OperationResult.ok(response, "Creazione utente completata con successo!");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
@@ -89,13 +80,11 @@ public class UserController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
 
-    @PostMapping(path = "/profile-fetch",
-                 consumes = MediaType.APPLICATION_JSON_VALUE,
+    @GetMapping(path = "/profile-fetch",
                  produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OperationResult<ProfileResponse>> profileFetch(
-            @Valid @RequestBody OnlyEmailRequest request) {
-        ProfileResponse response = userService.profileFetch(request);
-        OperationResult<ProfileResponse> result = OperationResult.ok(response, "Fetch del profile utente eseguito con successo!");
+    public ResponseEntity<OperationResult<UserResponseWithRoles>> profileFetch() {
+        UserResponseWithRoles response = userService.profileFetch();
+        OperationResult<UserResponseWithRoles> result = OperationResult.ok(response, "Fetch del profile utente eseguito con successo!");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
