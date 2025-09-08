@@ -28,9 +28,4 @@ public interface TicketService {
     List<Status> getAllStatuses();
 
 
-//    Page<TicketResponse> findTicketsByUserAndSearch(Long userId, String keyword, Pageable pageable);
-
-//    Page<Ticket> getPaginatedTickets(int page, int size);
-
-
 }

@@ -82,28 +82,58 @@ public class TicketServiceImpl implements TicketService{
             throw new RuntimeException("Utente non trovato");
         }
 
+        Optional<User> user = userRepository.findById(userId);
+        if (user.get().getRoles() == null || user.get().getRoles().isEmpty()) {
+            throw new RuntimeException("Utente senza ruoli, accesso negato");
+        }
         Page<Ticket> tickets;
 
-        if (keyword != null && !keyword.isBlank()) {
-            tickets = ticketRepository
-                    .findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
-                            userId, keyword, userId, keyword, pageable);
+        if (user.get().getRoles()
+                .stream()
+                .map(Role::getName)
+                .anyMatch("Utente"::equals)) {
+            if (keyword != null && !keyword.isBlank()) {
+                tickets = ticketRepository
+                        .findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
+                                userId, keyword, userId, keyword, pageable);
 
-        } else if (categoryName != null && !categoryName.isBlank() && status != null) {
-            tickets = ticketRepository.findByUserIdAndCategoryNameAndStatus(userId, categoryName, status, pageable);
+            } else if (categoryName != null && !categoryName.isBlank() && status != null) {
+                tickets = ticketRepository.findByUserIdAndCategoryNameAndStatus(userId, categoryName, status, pageable);
 
-        } else if (categoryName != null && !categoryName.isBlank()) {
-            tickets = ticketRepository.findByUserIdAndCategoryName(userId, categoryName, pageable);
+            } else if (categoryName != null && !categoryName.isBlank()) {
+                tickets = ticketRepository.findByUserIdAndCategoryName(userId, categoryName, pageable);
 
-        } else if (status != null) {
-            tickets = ticketRepository.findByUserIdAndStatus(userId, status, pageable);
+            } else if (status != null) {
+                tickets = ticketRepository.findByUserIdAndStatus(userId, status, pageable);
 
+            } else {
+                tickets = ticketRepository.findByUserId(userId, pageable);
+            }
+
+            return tickets.map(mapper::toResponse);
         } else {
-            tickets = ticketRepository.findByUserId(userId, pageable);
-        }
+            if (keyword != null && !keyword.isBlank()) {
+                tickets = ticketRepository
+                        .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+                                keyword, keyword, pageable);
+            } else if (categoryName != null && !categoryName.isBlank() && status != null) {
+                tickets = ticketRepository.findByCategoryNameAndStatus(categoryName, status, pageable);
 
-        return tickets.map(mapper::toResponse);
+            } else if (categoryName != null && !categoryName.isBlank()) {
+                tickets = ticketRepository.findByCategoryName(categoryName, pageable);
+
+            } else if (status != null) {
+                tickets = ticketRepository.findByStatus(status, pageable);
+
+            } else {
+                tickets = ticketRepository.findAll(pageable);
+            }
+
+            return tickets.map(mapper::toResponse);
+        }
     }
+
+
 
     @Override
     public List<Category> getAllCategories() {
