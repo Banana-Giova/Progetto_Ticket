@@ -56,7 +56,6 @@ public class TicketServiceImpl implements TicketService{
         ticket.setCreated_at(LocalDateTime.now());
         ticket.setStatus(Status.TO_DO);
 
-
         return ticketRepository.save(ticket);
     }
 
@@ -86,6 +85,7 @@ public class TicketServiceImpl implements TicketService{
         if (user.get().getRoles() == null || user.get().getRoles().isEmpty()) {
             throw new RuntimeException("Utente senza ruoli, accesso negato");
         }
+
         Page<Ticket> tickets;
 
         if (user.get().getRoles()
@@ -133,8 +133,6 @@ public class TicketServiceImpl implements TicketService{
         }
     }
 
-
-
     @Override
     public List<Category> getAllCategories() {
         return categoryService.getAllCategories();
@@ -146,28 +144,6 @@ public class TicketServiceImpl implements TicketService{
     }
 
 
-//    @Override
-//    public Page<TicketResponse> findTicketsByUser(Long userId, Pageable pageable) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("Utente non trovato"));
-//
-//        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-//            throw new RuntimeException("Utente senza ruoli, accesso negato");
-//        }
-//
-//        if (user.getRoles()
-//                .stream()
-//                .map(Role::getName)
-//                .anyMatch("Utente"::equals)) {
-//            Page<Ticket> tickets = ticketRepository.findByUserId(userId, pageable);
-//            return tickets.map(mapper::toResponse);
-//        } else {
-//            Page<Ticket> tickets = ticketRepository.findAll(pageable);
-//            return tickets.map(mapper::toResponse);
-//
-//        }
-//
-//    }
     
 
 
