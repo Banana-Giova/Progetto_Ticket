@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
         log.info("Password selezionata: " + request.getNewPassword());
         boolean existingUser = userRepository.existsByEmail(email);
         if (existingUser) {
-            throw new DuplicateException(String.format("Un utente registrato con la seguente mail '%s' già esiste.", email));
+            throw new DuplicateException("Esiste già un account associato a questa email.");
         } else if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("La password non coincide con il campo conferma password.");
         }
@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
         if (!user.getEmailConfirmed()) {
             throw new EmailNotConfirmedException(
-                    "L'email dell'account non è stata verificata. Si è pregati di controllare la propria casella di posta elettronica."
+                    "L'email dell'account non è ancora stata verificata."
             );
         } else if (!passwordHelper.matches(request.getPassword(), user.getPassword()))
             throw new BadCredentialsException("Credenziali non valide.");

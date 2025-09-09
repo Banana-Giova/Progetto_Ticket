@@ -24,7 +24,7 @@ public class OperationResult<T> {
         OperationResult<T> result = new OperationResult<>();
         result.ok = false;
         result.data = null;
-        result.message = OperationResult.KO_MESSAGE + " " + message;
+        result.message = /*OperationResult.KO_MESSAGE +*/ message;
         return result;
     }
 }
