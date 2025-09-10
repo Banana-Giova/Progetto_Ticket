@@ -1,4 +1,5 @@
 package it.degroup.it_tickets.presentation.controller;
+import it.degroup.it_tickets.common.mappers.TicketsMapper;
 import it.degroup.it_tickets.entity.Status;
 import it.degroup.it_tickets.entity.Ticket;
 import it.degroup.it_tickets.entity.User;
@@ -22,6 +23,8 @@ public class TicketController {
 
     @Autowired
     TicketService service;
+    @Autowired
+    TicketsMapper mapper;
 
     @PostMapping(path = "/add-ticket", produces = "application/json")
     public ResponseEntity<?> addTicket(@RequestBody TicketRequest request){
@@ -30,7 +33,8 @@ public class TicketController {
             MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
             User user = userDetails.getUser();
             Ticket ticket = service.addTicket(request, user);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ticket);
+            TicketResponse response = mapper.toResponse(ticket);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 
