@@ -2,9 +2,9 @@ package it.degroup.it_tickets.service.Ticket;
 
 import it.degroup.it_tickets.entity.Category;
 import it.degroup.it_tickets.entity.Status;
-import it.degroup.it_tickets.entity.Ticket;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.TicketRequest;
+import it.degroup.it_tickets.presentation.responses.TicketChartResponse;
 import it.degroup.it_tickets.presentation.responses.TicketResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,11 +13,10 @@ import java.util.List;
 
 public interface TicketService {
 
-    Ticket addTicket(TicketRequest request, User user);
+    TicketResponse addTicket(TicketRequest request);
     Page<TicketResponse> findTicketsByUser(Long userId,Pageable pageable);
 
     Page<TicketResponse> findTicketsByUserWithFilters(
-            Long userId,
             String keyword,
             String categoryName,
             Status status,
@@ -27,5 +26,5 @@ public interface TicketService {
 
     List<Status> getAllStatuses();
 
-
+    TicketChartResponse getTicketChart();
 }
