@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface TicketsMapper {
     @Mapping(source = "category.name", target = "categoryName")
-    @Mapping(source = "is_priority", target = "isPriority")
+    @Mapping(source = "is_priority", target = "is_priority")
     @Mapping(source = "status", target = "status") // converte automaticamente l'enum in string
     TicketResponse toResponse(Ticket ticket);
     List<TicketResponse> toResponseList(List<Ticket> tickets);

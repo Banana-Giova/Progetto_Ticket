@@ -13,7 +13,7 @@ public class TicketResponse {
     private Long id;
     private String title;
     private String description;
-    private Boolean isPriority;
+    private Boolean is_priority;
     private String categoryName;
     private LocalDateTime createdAt;
     private String status; // se hai un enum Status
