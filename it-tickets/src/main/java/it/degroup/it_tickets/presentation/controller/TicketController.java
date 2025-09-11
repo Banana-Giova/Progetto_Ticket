@@ -8,6 +8,7 @@ import it.degroup.it_tickets.presentation.responses.TicketChartResponse;
 import it.degroup.it_tickets.presentation.responses.TicketResponse;
 import it.degroup.it_tickets.service.Ticket.TicketService;
 import it.degroup.it_tickets.service.User.MyUserDetails;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,11 +26,28 @@ public class TicketController {
 
     @Autowired
     TicketService service;
+    @Autowired
+    TicketsMapper mapper;
 
-    @PostMapping(path = "/add-ticket", produces = "application/json")
+    @PostMapping(path = "/add", produces = "application/json")
     public ResponseEntity<?> addTicket(@RequestBody TicketRequest request){
-        TicketResponse response = service.addTicket(request);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication(); //recupera l'utente autenticato
+        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
+        User user = userDetails.getUser();
+
+        Ticket ticket = service.addTicket(request, user);
+        TicketResponse response = mapper.toResponse(ticket);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping(path = "/{id}", produces = "application/json")
+    public ResponseEntity<?> getTicketById(@PathVariable Long id) {
+        try {
+            TicketResponse ticket = service.findTicketById(id);
+            return ResponseEntity.ok(ticket);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @GetMapping(path = "/", produces = "application/json")
@@ -37,13 +55,26 @@ public class TicketController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) Status status,
-            Pageable pageable) {
+            Pageable pageable){
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication(); //recupera l'utente autenticato
+            MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
+            User user = userDetails.getUser();
 
-        Page<TicketResponse> tickets = service.findTicketsByUserWithFilters(
-                keyword, categoryName, status, pageable);
+            Page<TicketResponse> tickets = service.findTicketsByUserWithFilters(
+                    user.getId(), keyword, categoryName, status, pageable);
 
-        return ResponseEntity.ok(tickets);
+            return ResponseEntity.ok(tickets);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+
+        }
     }
+
+
 
     @GetMapping("/status")
     public ResponseEntity<List<Status>> getAllStatuses() {
@@ -52,6 +83,11 @@ public class TicketController {
 
     @GetMapping("/chart")
     public ResponseEntity<TicketChartResponse> getTicketChart() {
-        return ResponseEntity.ok(service.getTicketChart());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication(); //recupera l'utente autenticato
+        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
+        User user = userDetails.getUser();
+
+        return ResponseEntity.ok(service.getTicketChart(user));
     }
+
 }

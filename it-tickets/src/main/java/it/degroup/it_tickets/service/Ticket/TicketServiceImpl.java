@@ -11,13 +11,11 @@ import it.degroup.it_tickets.repository.CategoryRepository;
 import it.degroup.it_tickets.repository.TicketRepository;
 import it.degroup.it_tickets.repository.UserRepository;
 //import it.degroup.it_tickets.utility.PaginationUtils;
-import it.degroup.it_tickets.service.User.MyUserDetails;
 import it.degroup.it_tickets.service.category.CategoryService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,33 +41,32 @@ public class TicketServiceImpl implements TicketService{
     CategoryService categoryService;
 
 
-
     @Override
-    public TicketResponse addTicket(TicketRequest request) {
+    public Ticket addTicket(TicketRequest request, User userFromSC) {
         Optional<Category> category = categoryRepository.findById(request.getCategory());
         if (category.isEmpty())
-            throw new IllegalArgumentException("Categoria non presente.");
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
-        User user = userDetails.getUser();
+            throw new IllegalArgumentException("categoria non presente");
+        Optional<User> user = userRepository.findByEmail(userFromSC.getEmail());
+        if (user.isEmpty()) {
+            throw new RuntimeException("Utente non trovato");
+        }
 
         Ticket ticket = new Ticket();
         ticket.setCategory(category.get());
         ticket.setDescription(request.getDescription());
-        ticket.setUser(user);
+        ticket.setUser(user.get());
         ticket.setTitle(request.getTitle());
         ticket.setIs_priority(request.getIs_priority());
         ticket.setCreated_at(LocalDateTime.now());
         ticket.setStatus(Status.TO_DO);
 
-        return mapper.toResponse(ticketRepository.save(ticket));
+        return ticketRepository.save(ticket);
     }
 
     @Override
     public Page<TicketResponse> findTicketsByUser(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId))
-            throw new RuntimeException("Utente non trovato.");
+            throw new RuntimeException("Utente non trovato");
 
         Page<Ticket> tickets = ticketRepository.findByUserId(userId, pageable);
 
@@ -77,28 +74,38 @@ public class TicketServiceImpl implements TicketService{
     }
 
     @Override
+    public TicketResponse findTicketById(Long id) {
+        return ticketRepository.findById(id)
+                .map(mapper::toResponse)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket non trovato con l'id " + id));
+    }
+
+    @Override
     public Page<TicketResponse> findTicketsByUserWithFilters(
+            Long userId,
             String keyword,
             String categoryName,
             Status status,
             Pageable pageable) {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
-        User user = userDetails.getUser();
-        Long userId = user.getId();
-        if (user == null || user.getRoles().isEmpty())
-            throw new RuntimeException("Utente nullo o illegale, accesso negato.");
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("Utente non trovato");
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.get().getRoles() == null || user.get().getRoles().isEmpty()) {
+            throw new RuntimeException("Utente senza ruoli, accesso negato");
+        }
 
         Page<Ticket> tickets;
 
-        if (user.getRoles()
+        if (user.get().getRoles()
                 .stream()
                 .map(Role::getName)
                 .anyMatch("Utente"::equals)) {
             if (keyword != null && !keyword.isBlank()) {
                 tickets = ticketRepository
-                         .findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
+                        .findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
                                 userId, keyword, userId, keyword, pageable);
 
             } else if (categoryName != null && !categoryName.isBlank() && status != null) {
@@ -147,15 +154,18 @@ public class TicketServiceImpl implements TicketService{
     }
 
     @Override
-    public TicketChartResponse getTicketChart() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication(); //recupera l'utente autenticato
-        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
-        User user = userDetails.getUser();
-        if (user == null || user.getRoles().isEmpty())
-            throw new RuntimeException("Utente nullo o illegale, accesso negato.");
+    public TicketChartResponse getTicketChart(User userFromSC) {
+        Optional<User> user = userRepository.findByEmail(userFromSC.getEmail());
+        if (user.isEmpty()) {
+            throw new RuntimeException("Utente non trovato");
+        }
 
         Page<Ticket> ticketsPage;
-        ticketsPage = ticketRepository.findByUserId(user.getId(), Pageable.unpaged());
+        if (user.get().isAdmin()) {
+            ticketsPage = ticketRepository.findAll(Pageable.unpaged());
+        } else {
+            ticketsPage = ticketRepository.findByUserId(user.get().getId(), Pageable.unpaged());
+        }
 
         Map<String, Integer> stats = new HashMap<>();
         for (Ticket t : ticketsPage.getContent()) {

@@ -20,7 +20,7 @@ public class JwtUtil  {
     private final JwtParser jwtParser;
     private static final String SECRET = "questo_e_un_segreto_sicuro_di_32_byte!";
     private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-    private static final int MINUTES = 1;
+    private static final int MINUTES = 100;
     private final String TOKEN_HEADER = "Authorization";
     private final String TOKEN_PREFIX = "Bearer ";
 

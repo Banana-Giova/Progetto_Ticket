@@ -79,7 +79,19 @@ public class User {
         return roleList;
     }
 
-    public boolean isEmailTokenExpired(boolean throws_ex) {
+    public boolean isOperator() {
+        if (this.getRoleList().contains("Operatore")) {
+            return true;
+        } return false;
+    }
+
+    public boolean isAdmin() {
+        if (this.getRoleList().contains("Amministratore")) {
+            return true;
+        } return false;
+    }
+
+    public boolean isEmailTokenExpired() {
         if (this.getEmailExpiration().isBefore(LocalDateTime.now()))
             throw new IllegalStateException("Email token scaduto! Si è pregati di registrare di nuovo l'account");
         return this.getEmailExpiration().isBefore(LocalDateTime.now());

@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmailToken(emailToken.getToken())
                 .orElseThrow(() -> new InvalidOneTimeTokenException("Token invalido"));
 
-        if (user.isEmailTokenExpired(false)) {
+        if (user.isEmailTokenExpired()) {
             userRepository.delete(user);
             throw new IllegalStateException("Email token scaduto! Si è pregati di registrare di nuovo l'account");
         }
