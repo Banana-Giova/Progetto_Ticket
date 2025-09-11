@@ -13,6 +13,8 @@ public interface TicketsMapper {
     @Mapping(source = "category.name", target = "categoryName")
     @Mapping(source = "is_priority", target = "is_priority")
     @Mapping(source = "status", target = "status") // converte automaticamente l'enum in string
+    @Mapping(source = "created_at", target = "created_at")
+    @Mapping(source = "modified_at", target = "modified_at")
     TicketResponse toResponse(Ticket ticket);
     List<TicketResponse> toResponseList(List<Ticket> tickets);
 

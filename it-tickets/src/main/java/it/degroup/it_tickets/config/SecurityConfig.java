@@ -34,6 +34,8 @@ public class SecurityConfig {
                         .requestMatchers("/add-ticket").authenticated()
                         .requestMatchers("/tickets").authenticated()
                         .requestMatchers("/tickets/status").authenticated()
+                                .requestMatchers("/ticket/{id}").authenticated()
+
 
                                 .anyRequest().authenticated()
                 )

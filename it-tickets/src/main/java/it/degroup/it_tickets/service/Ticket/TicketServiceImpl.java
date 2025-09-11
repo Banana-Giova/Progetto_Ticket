@@ -11,6 +11,7 @@ import it.degroup.it_tickets.repository.TicketRepository;
 import it.degroup.it_tickets.repository.UserRepository;
 //import it.degroup.it_tickets.utility.PaginationUtils;
 import it.degroup.it_tickets.service.category.CategoryService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -67,6 +68,13 @@ public class TicketServiceImpl implements TicketService{
         Page<Ticket> tickets = ticketRepository.findByUserId(userId, pageable);
 
         return tickets.map(mapper::toResponse);
+    }
+
+    @Override
+    public TicketResponse findTicketById(Long id) {
+        return ticketRepository.findById(id)
+                .map(mapper::toResponse)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket non trovato con l'id " + id));
     }
 
     @Override

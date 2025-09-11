@@ -15,6 +15,7 @@ public class TicketResponse {
     private String description;
     private Boolean is_priority;
     private String categoryName;
-    private LocalDateTime createdAt;
+    private LocalDateTime created_at;
+    private LocalDateTime modified_at;
     private String status; // se hai un enum Status
 }

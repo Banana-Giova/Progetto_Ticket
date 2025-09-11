@@ -7,6 +7,7 @@ import it.degroup.it_tickets.presentation.requests.TicketRequest;
 import it.degroup.it_tickets.presentation.responses.TicketResponse;
 import it.degroup.it_tickets.service.Ticket.TicketService;
 import it.degroup.it_tickets.service.User.MyUserDetails;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,10 +38,17 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-
-
         }
+    }
 
+    @GetMapping(path = "/ticket/{id}", produces = "application/json")
+    public ResponseEntity<?> getTicketById(@PathVariable Long id) {
+        try {
+            TicketResponse ticket = service.findTicketById(id);
+            return ResponseEntity.ok(ticket);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @GetMapping(path = "/tickets", produces = "application/json")
@@ -67,12 +75,11 @@ public class TicketController {
         }
     }
 
+
+
     @GetMapping("/tickets/status")
     public ResponseEntity<List<Status>> getAllStatuses() {
         return ResponseEntity.ok(service.getAllStatuses());
     }
-
-
-
 
 }
