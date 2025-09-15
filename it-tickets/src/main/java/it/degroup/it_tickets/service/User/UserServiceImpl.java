@@ -216,10 +216,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseWithRoles profileFetch() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        MyUserDetails userDetails = (MyUserDetails) auth.getPrincipal();
-        User user = userDetails.getUser();
+    public UserResponseWithRoles profileFetch(User user) {
         return userMapper.userToUserResponseWithRoles(user);
     }
 

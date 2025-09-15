@@ -21,5 +21,5 @@ public interface UserService {
     Optional<User> findUserByEmail(String email);
     void resetPassword(ResetPasswordRequest request);
     void forgotPassword(OnlyEmailRequest request);
-    UserResponseWithRoles profileFetch();
+    UserResponseWithRoles profileFetch(User user);
 }

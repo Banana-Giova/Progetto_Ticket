@@ -25,6 +25,26 @@ public class GlobalExceptionHandler {
         JSON_HEADERS.setContentType(MediaType.APPLICATION_JSON);
     }
 
+    @ExceptionHandler(UnauthenticatedUserException.class)
+    public ResponseEntity<OperationResult<?>> handleUnauthenticated(UnauthenticatedUserException ex) {
+        log.warn("UnauthenticatedUserException: {}", ex.getMessage());
+        OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .headers(JSON_HEADERS)
+                .body(body);
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    public ResponseEntity<OperationResult<?>> handleDuplicate(UnauthorizedUserException ex) {
+        log.warn("UnauthorizedUserException: {}", ex.getMessage());
+        OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .headers(JSON_HEADERS)
+                .body(body);
+    }
+
     @ExceptionHandler(DuplicateException.class)
     public ResponseEntity<OperationResult<?>> handleDuplicate(DuplicateException ex) {
         log.warn("DuplicateException: {}", ex.getMessage());
