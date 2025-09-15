@@ -30,12 +30,14 @@ public class SecurityConfig {
                         .requestMatchers("/reset-password").permitAll()
                         .requestMatchers("/forgot-password").permitAll()
                         .requestMatchers("/categories").permitAll()
-                        .requestMatchers("/test").authenticated()
+                        .requestMatchers("/test").permitAll()
                         .requestMatchers("/add-ticket").authenticated()
                         .requestMatchers("/tickets").authenticated()
                         .requestMatchers("/tickets/status").authenticated()
+                        .requestMatchers("/profile-fetch").authenticated()
+                        .requestMatchers("/get-users-list").authenticated()
 
-                                .anyRequest().authenticated()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);

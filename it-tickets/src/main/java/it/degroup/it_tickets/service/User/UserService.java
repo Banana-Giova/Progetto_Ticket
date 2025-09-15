@@ -7,6 +7,8 @@ import it.degroup.it_tickets.presentation.requests.RegisterRequest;
 import it.degroup.it_tickets.presentation.requests.ResetPasswordRequest;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 //import it.degroup.it_tickets.presentation.responses.PagingResult;
 
 import java.util.Optional;
@@ -21,5 +23,10 @@ public interface UserService {
     Optional<User> findUserByEmail(String email);
     void resetPassword(ResetPasswordRequest request);
     void forgotPassword(OnlyEmailRequest request);
+    Page<UserResponseWithRoles> getUsersListWithFilters(
+            String keyword,
+            String roleName,
+            Pageable pageable
+    );
     UserResponseWithRoles profileFetch(User user);
 }

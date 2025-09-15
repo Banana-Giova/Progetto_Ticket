@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +29,10 @@ public class UserController {
     private AuthenticationHelper authHelper;
 
     @GetMapping(path = "/test")
-    public ResponseEntity<Void> test() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> test()  {
+        authHelper.getUser();
+        String response = "test";
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping (path = "/login", consumes = "application/json")   //responseEntity è una classe generica per gestire le risposte hhtp
@@ -82,6 +86,19 @@ public class UserController {
                                                           "Password temporanea generata ed inviata con successo!");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
+    }
+
+    @GetMapping(path = "/get-users-list", produces = "application/json")
+    public ResponseEntity<?> getUsersList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String roleName,
+            Pageable pageable) throws Exception {
+        authHelper.getAdminOrError();
+
+        Page<UserResponseWithRoles> usersList = userService.getUsersListWithFilters(
+                keyword, roleName, pageable);
+
+        return ResponseEntity.ok(usersList);
     }
 
     @GetMapping(path = "/profile-fetch",

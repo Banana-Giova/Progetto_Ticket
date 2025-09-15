@@ -17,6 +17,8 @@ import it.degroup.it_tickets.service.Role.RoleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
 import org.springframework.security.core.Authentication;
@@ -213,6 +215,31 @@ public class UserServiceImpl implements UserService {
         user.setPasswordToken(passwordToken);
         user.setPasswordExpiration(LocalDateTime.now().plusHours(1));
         userRepository.save(user);
+    }
+
+    @Override
+    public Page<UserResponseWithRoles> getUsersListWithFilters(
+            String keyword,
+            String roleName,
+            Pageable pageable) {
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        boolean hasRole = roleName != null && !roleName.isBlank();
+
+        Page<User> usersPage;
+
+        if (hasRole && hasKeyword) {
+            usersPage = userRepository.findByRoleNameAndKeyword(roleName.trim(), keyword.trim(), pageable);
+        } else if (hasRole) {
+            usersPage = userRepository.findByRolesNameIgnoreCase(roleName.trim(), pageable);
+        } else if (hasKeyword) {
+            String kw = keyword.trim();
+            usersPage = userRepository
+                    .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(kw, kw, kw, pageable);
+        } else {
+            usersPage = userRepository.findAll(pageable);
+        }
+
+        return usersPage.map(userMapper::userToUserResponseWithRoles);
     }
 
     @Override

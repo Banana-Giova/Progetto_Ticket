@@ -48,13 +48,13 @@ public class AuthenticationHelper {
         }
     }
 
-    public User getAdminOrError() {
+    public User getAdminOrError() throws Exception {
         User currUser = this.currentUserDetails().getUser();
         if (currUser.isAdmin()) {
             return currUser;
         } else {
             log.warn("Accesso admin negato per l'utente id={}", currUser.getId());
-            throw new UnauthorizedUserException("Area amministratori, utente non autorizzato.");
+            throw new Exception("Area amministratori, utente non autorizzato.");
         }
     }
 }
