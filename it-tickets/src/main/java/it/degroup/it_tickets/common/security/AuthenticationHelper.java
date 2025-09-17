@@ -3,16 +3,25 @@ package it.degroup.it_tickets.common.security;
 import it.degroup.it_tickets.common.exceptions.UnauthorizedUserException;
 import it.degroup.it_tickets.common.exceptions.UnauthenticatedUserException; // nuovo checked
 import it.degroup.it_tickets.entity.User;
+import it.degroup.it_tickets.repository.UserRepository;
 import it.degroup.it_tickets.service.User.MyUserDetails;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Slf4j
+@Transactional(readOnly = true)
 @Component
 public class AuthenticationHelper {
+
+    @Autowired
+    private UserRepository userRepository;
 
      // Ritorna i MyUserDetails dell'utente autenticato.
     // Lancia UnauthenticatedUserException se non è presente un utente autenticato.
@@ -34,12 +43,15 @@ public class AuthenticationHelper {
     }
 
     public User getUser() throws UnauthenticatedUserException {
-        return this.currentUserDetails().getUser();
+        Optional<User> user = userRepository.findByEmail(this.currentUserDetails().getUser().getEmail());
+        if (user.isEmpty())
+            throw new RuntimeException("Utente non trovato");
+        return user.get();
     }
 
     // Ritorna l'utente se è operatore, altrimenti lancia UnauthorizedUserException; simile per il metodo sotto questo.
     public User getOperatorOrError() {
-        User currUser = this.currentUserDetails().getUser();
+        User currUser = this.getUser();
         if (currUser.isOperator()) {
             return currUser;
         } else {
@@ -48,13 +60,13 @@ public class AuthenticationHelper {
         }
     }
 
-    public User getAdminOrError() throws Exception {
-        User currUser = this.currentUserDetails().getUser();
+    public User getAdminOrError() {
+        User currUser = this.getUser();
         if (currUser.isAdmin()) {
             return currUser;
         } else {
             log.warn("Accesso admin negato per l'utente id={}", currUser.getId());
-            throw new Exception("Area amministratori, utente non autorizzato.");
+            throw new UnauthorizedUserException("Area amministratori, utente non autorizzato.");
         }
     }
 }

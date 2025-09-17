@@ -88,7 +88,7 @@ public class UserController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
 
-    @GetMapping(path = "/get-users-list", produces = "application/json")
+    @GetMapping(path = "/admin/get-users-list", produces = "application/json")
     public ResponseEntity<?> getUsersList(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String roleName,

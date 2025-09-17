@@ -21,14 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ott.InvalidOneTimeTokenException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.spring6.SpringTemplateEngine;
-
 import java.lang.reflect.MalformedParametersException;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -218,27 +216,48 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserResponseWithRoles> getUsersListWithFilters(
-            String keyword,
-            String roleName,
-            Pageable pageable) {
+    public Page<UserResponseWithRoles> getUsersListWithFilters(String keyword, String roleName, Pageable pageable) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
         boolean hasRole = roleName != null && !roleName.isBlank();
 
         Page<User> usersPage;
-
         if (hasRole && hasKeyword) {
-            usersPage = userRepository.findByRoleNameAndKeyword(roleName.trim(), keyword.trim(), pageable);
+            keyword = keyword.trim();
+            roleName = roleName.trim();
+            switch (roleName) {
+                case "Utente":
+                    usersPage = userRepository.findOnlyUsersByKeyword(keyword, pageable);
+                    break;
+                case "Operatore":
+                    usersPage = userRepository.findOnlyOperatorsByKeyword(keyword, pageable);
+                    break;
+                case "Amministratore":
+                    usersPage = userRepository.findByRoleNameAndKeyword(roleName, keyword, pageable);
+                    break;
+                default:
+                    usersPage = Page.empty(pageable);
+            }
         } else if (hasRole) {
-            usersPage = userRepository.findByRolesNameIgnoreCase(roleName.trim(), pageable);
+            roleName = roleName.trim();
+            switch (roleName) {
+                case "Utente":
+                    usersPage = userRepository.findOnlyUsers(pageable);
+                    break;
+                case "Operatore":
+                    usersPage = userRepository.findOnlyOperators(pageable);
+                    break;
+                case "Amministratore":
+                    usersPage = userRepository.findByRolesNameIgnoreCase(roleName, pageable);
+                    break;
+                default:
+                    usersPage = Page.empty(pageable);
+            }
         } else if (hasKeyword) {
             String kw = keyword.trim();
-            usersPage = userRepository
-                    .findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(kw, kw, kw, pageable);
+            usersPage = userRepository.findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(kw, kw, kw, pageable);
         } else {
             usersPage = userRepository.findAll(pageable);
         }
-
         return usersPage.map(userMapper::userToUserResponseWithRoles);
     }
 

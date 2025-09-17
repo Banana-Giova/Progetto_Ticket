@@ -3,6 +3,7 @@ package it.degroup.it_tickets.common.exceptions;
 import it.degroup.it_tickets.common.models.OperationResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,6 +52,16 @@ public class GlobalExceptionHandler {
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
+                .headers(JSON_HEADERS)
+                .body(body);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<OperationResult<?>> handleDuplicate(DataAccessException ex) {
+        log.warn("DataAccessException: {}", ex.getMessage());
+        OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .headers(JSON_HEADERS)
                 .body(body);
     }

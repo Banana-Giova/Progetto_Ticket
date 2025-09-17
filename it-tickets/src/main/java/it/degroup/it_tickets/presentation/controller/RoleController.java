@@ -1,8 +1,10 @@
 package it.degroup.it_tickets.presentation.controller;
 
 import it.degroup.it_tickets.common.models.OperationResult;
+import it.degroup.it_tickets.entity.Category;
 import it.degroup.it_tickets.presentation.requests.AssignRoleRequest;
 import it.degroup.it_tickets.presentation.requests.CreateRoleRequest;
+import it.degroup.it_tickets.presentation.responses.RoleResponseWOUsers;
 import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
 import it.degroup.it_tickets.presentation.responses.RoleResponseWithUsers;
 import it.degroup.it_tickets.service.Role.RoleService;
@@ -25,8 +27,8 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping(path = "/create",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                 consumes = MediaType.APPLICATION_JSON_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<RoleResponseWithUsers>> createRole(
             @Valid @RequestBody CreateRoleRequest request) {
 
@@ -40,8 +42,15 @@ public class RoleController {
                 .body(result);
     }
 
-    @GetMapping(path = "/get",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/get-all",
+                produces = "application/json")
+    public ResponseEntity<?> getAllRoles() {
+        List<RoleResponseWOUsers> response = roleService.getAllRoles();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(path = "/get-one",
+                produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<RoleResponseWithUsers>> getRole(
             @RequestParam String roleName) {
 
@@ -56,7 +65,7 @@ public class RoleController {
     }
 
     @GetMapping(path = "/get-users-by-role",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<List<UserResponseWithRoles>>> getUsersByRole(
             @RequestParam String roleName) {
 
@@ -71,8 +80,8 @@ public class RoleController {
     }
 
     @PostMapping(path = "/assign",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                 consumes = MediaType.APPLICATION_JSON_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<String>> assignRole(
             @Valid @RequestBody AssignRoleRequest request) {
 
@@ -89,15 +98,22 @@ public class RoleController {
                 .body(result);
     }
 
-    @GetMapping(path = "/add_operator_test")
-    public ResponseEntity<Void> addOperatorTest() {
-        roleService.assignRoleToUser("plinio.giovanissimo@gmail.com", "Operatore");
-        return ResponseEntity.ok().build();
-    }
+    @PostMapping(path = "/remove",
+                 consumes = MediaType.APPLICATION_JSON_VALUE,
+                 produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<OperationResult<String>> removeRole(
+            @Valid @RequestBody AssignRoleRequest request) {
 
-    @GetMapping(path = "/remove_operator_test")
-    public ResponseEntity<Void> removeOperatorTest() {
-        roleService.removeRoleFromUser("plinio.giovanissimo@gmail.com", "Operatore");
-        return ResponseEntity.ok().build();
+        roleService.removeRoleFromUser(request.getEmail(), request.getRoleName());
+        OperationResult<String> result =
+                OperationResult.ok(
+                        "RUOLO RIMOSSO CORRETTAMENTE ALL'UTENTE CON LA SEGUENTE EMAIL: " + request.getEmail(),
+                        "Rimozione ruolo completata con successo!"
+                );
+
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(result);
     }
 }
