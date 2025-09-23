@@ -5,6 +5,7 @@ import it.degroup.it_tickets.entity.*;
 //import it.degroup.it_tickets.presentation.requests.PaginationRequest;
 import it.degroup.it_tickets.presentation.requests.TicketRequest;
 //import it.degroup.it_tickets.presentation.responses.PagingResult;
+import it.degroup.it_tickets.presentation.responses.TicketChartResponse;
 import it.degroup.it_tickets.presentation.responses.TicketResponse;
 import it.degroup.it_tickets.repository.CategoryRepository;
 import it.degroup.it_tickets.repository.TicketRepository;
@@ -19,7 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Transactional
@@ -39,12 +42,12 @@ public class TicketServiceImpl implements TicketService{
 
 
     @Override
-    public Ticket addTicket(TicketRequest request, User userFromSecurityContext) {
+    public Ticket addTicket(TicketRequest request, User userFromSC) {
         Optional<Category> category = categoryRepository.findById(request.getCategory());
         if (category.isEmpty())
             throw new IllegalArgumentException("categoria non presente");
-        Optional<User> user = userRepository.findByEmail(userFromSecurityContext.getEmail());
-        if(user.isEmpty()) {
+        Optional<User> user = userRepository.findByEmail(userFromSC.getEmail());
+        if (user.isEmpty()) {
             throw new RuntimeException("Utente non trovato");
         }
 
@@ -118,7 +121,6 @@ public class TicketServiceImpl implements TicketService{
                 tickets = ticketRepository.findByUserId(userId, pageable);
             }
 
-            return tickets.map(mapper::toResponse);
         } else {
             if (keyword != null && !keyword.isBlank()) {
                 tickets = ticketRepository
@@ -137,8 +139,27 @@ public class TicketServiceImpl implements TicketService{
                 tickets = ticketRepository.findAll(pageable);
             }
 
-            return tickets.map(mapper::toResponse);
         }
+        return tickets.map(mapper::toResponse);
+    }
+
+    @Override
+    public Ticket updateDescription(Long id, String newDescription) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Ticket non trovato con l'id " + id));
+        if (!"TO_DO".equals(ticket.getStatus().toString()))
+            throw new IllegalStateException("ticket non modificabile perchè gia in lavorazione");
+        ticket.setDescription(newDescription);
+        ticket.setModified_at(LocalDateTime.now());
+        return ticketRepository.save(ticket);
+    }
+
+    @Override
+    public Ticket updateStatus(Long id, String status) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Ticket non trovato con l'id " + id));
+        ticket.setStatus(Status.valueOf(status));
+        ticket.setModified_at(LocalDateTime.now());
+        Ticket ticketsaved = ticketRepository.save(ticket);
+        return ticketsaved;
     }
 
     @Override
@@ -151,9 +172,28 @@ public class TicketServiceImpl implements TicketService{
         return List.of(Status.values());
     }
 
+    @Override
+    public TicketChartResponse getTicketChart(User userFromSC) {
+        Optional<User> user = userRepository.findByEmail(userFromSC.getEmail());
+        if (user.isEmpty()) {
+            throw new RuntimeException("Utente non trovato");
+        }
 
-    
+        Page<Ticket> ticketsPage;
+        if (user.get().isAdmin()) {
+            ticketsPage = ticketRepository.findAll(Pageable.unpaged());
+        } else {
+            ticketsPage = ticketRepository.findByUserId(user.get().getId(), Pageable.unpaged());
+        }
 
+        Map<String, Integer> stats = new HashMap<>();
+        for (Ticket t : ticketsPage.getContent()) {
+            String key = t.getStatus() != null ? t.getStatus().name() : "UNKNOWN";
+            stats.put(key, stats.getOrDefault(key, 0) + 1);
+        }
 
-
+        TicketChartResponse response = new TicketChartResponse();
+        response.setTicketStats(stats);
+        return response;
+    }
 }

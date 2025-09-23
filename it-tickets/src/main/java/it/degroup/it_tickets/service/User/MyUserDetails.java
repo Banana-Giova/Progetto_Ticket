@@ -2,12 +2,14 @@ package it.degroup.it_tickets.service.User;
 
 import io.jsonwebtoken.lang.Collections;
 import it.degroup.it_tickets.entity.User;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
 
+@Getter
 public class MyUserDetails implements UserDetails {
     private final User user;
 
@@ -18,10 +20,6 @@ public class MyUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
-    }
-
-    public User getUser() {
-        return user;
     }
 
     @Override

@@ -1,6 +1,8 @@
 package it.degroup.it_tickets.presentation.controller;
 
 import it.degroup.it_tickets.common.models.OperationResult;
+import it.degroup.it_tickets.common.security.AuthenticationHelper;
+import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.*;
 import it.degroup.it_tickets.presentation.responses.LoginResponse;
 import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
@@ -9,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +25,14 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private AuthenticationHelper authHelper;
 
     @GetMapping(path = "/test")
-    public ResponseEntity<Void> test() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> test()  {
+        authHelper.getUser();
+        String response = "test";
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping (path = "/login", consumes = "application/json")   //responseEntity è una classe generica per gestire le risposte hhtp
@@ -80,10 +88,24 @@ public class UserController {
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
 
+    @GetMapping(path = "/admin/get-users-list", produces = "application/json")
+    public ResponseEntity<?> getUsersList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String roleName,
+            Pageable pageable) throws Exception {
+        authHelper.getAdminOrError();
+
+        Page<UserResponseWithRoles> usersList = userService.getUsersListWithFilters(
+                keyword, roleName, pageable);
+
+        return ResponseEntity.ok(usersList);
+    }
+
     @GetMapping(path = "/profile-fetch",
                  produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OperationResult<UserResponseWithRoles>> profileFetch() {
-        UserResponseWithRoles response = userService.profileFetch();
+        User curr_user = authHelper.getUser();
+        UserResponseWithRoles response = userService.profileFetch(curr_user);
         OperationResult<UserResponseWithRoles> result = OperationResult.ok(response, "Fetch del profile utente eseguito con successo!");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);

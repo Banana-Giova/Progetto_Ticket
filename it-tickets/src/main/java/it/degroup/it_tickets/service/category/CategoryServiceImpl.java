@@ -17,10 +17,6 @@ public class CategoryServiceImpl implements CategoryService{
     CategoryRepository repository;
 
     public List<Category> getAllCategories() {
-        try {
-            return repository.findAll();
-        } catch (DataAccessException e) {
-            throw new RuntimeException("Errore nel recupero delle categorie dal database", e);
-        }
+        return repository.findAll();
     }
 }

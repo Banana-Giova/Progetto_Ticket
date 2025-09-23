@@ -5,16 +5,19 @@ import it.degroup.it_tickets.entity.Status;
 import it.degroup.it_tickets.entity.Ticket;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.TicketRequest;
+import it.degroup.it_tickets.presentation.responses.TicketChartResponse;
 import it.degroup.it_tickets.presentation.responses.TicketResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TicketService {
 
-    Ticket addTicket(TicketRequest request, User user);
+    Ticket addTicket(TicketRequest request, User userFromSC);
+
     Page<TicketResponse> findTicketsByUser(Long userId,Pageable pageable);
     TicketResponse findTicketById(Long id);
     Page<TicketResponse> findTicketsByUserWithFilters(
@@ -24,10 +27,13 @@ public interface TicketService {
             Status status,
             Pageable pageable);
 
+    Ticket updateDescription(Long id, String newDescription);
+
+    Ticket updateStatus(Long id, String status);
 
     List<Category> getAllCategories();
 
     List<Status> getAllStatuses();
 
-
+    TicketChartResponse getTicketChart(User userFromSC);
 }

@@ -1,9 +1,11 @@
 package it.degroup.it_tickets.service.Role;
 
+import it.degroup.it_tickets.common.exceptions.UnauthorizedUserException;
 import it.degroup.it_tickets.common.mappers.RoleMapper;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.entity.Role;
 import it.degroup.it_tickets.entity.User;
+import it.degroup.it_tickets.presentation.responses.RoleResponseWOUsers;
 import it.degroup.it_tickets.presentation.responses.UserResponseWithRoles;
 import it.degroup.it_tickets.presentation.responses.RoleResponseWithUsers;
 import it.degroup.it_tickets.repository.RoleRepository;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,6 +57,15 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public List<RoleResponseWOUsers> getAllRoles() {
+        List<Role> roles = roleRepository.findAll();
+        return roles.stream()
+                .sorted(Comparator.comparing(Role::getId))
+                .map(roleMapper::roleToRoleResponseWOUsers)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<UserResponseWithRoles> getUsersByRole(String roleName) {
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Ruolo non esistente: " + roleName));
@@ -63,10 +75,10 @@ public class RoleServiceImpl implements RoleService {
         }
 
         return role.getUsers()
-                   .stream()
-                   .sorted(Comparator.comparing(User::getId))
-                   .map(userMapper::userToUserResponseWithRoles)
-                   .collect(Collectors.toList());
+                .stream()
+                .sorted(Comparator.comparing(User::getId))
+                .map(userMapper::userToUserResponseWithRoles)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -76,14 +88,23 @@ public class RoleServiceImpl implements RoleService {
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Ruolo non esistente: " + roleName));
 
-        if (!user.getRoles().isEmpty()) {
-            boolean alreadyAssigned = user.getRoles()
-                    .stream()
-                    .anyMatch(r -> roleName.equals(r.getName()));
-            if (alreadyAssigned)
-                throw new IllegalArgumentException("Ruolo " + roleName + " già assegnato all'utente con email " + email);
-        }
+        List<String> allowedRoles = List.of("Utente", "Operatore", "Amministratore");
+        if (!allowedRoles.contains(roleName))
+            throw new IllegalArgumentException("Ruolo non ammesso: " + roleName);
+
+        boolean alreadyAssigned = user.getRoles() != null &&
+                user.getRoles().stream().anyMatch(r -> roleName.equals(r.getName()));
+        if (alreadyAssigned)
+            throw new IllegalArgumentException(roleName + " già assegnato a " + email);
+
+        if (user.getRoles() == null)
+            user.setRoles(new HashSet<>());
+        if (role.getUsers() == null)
+            role.setUsers(new HashSet<>());
+
         user.getRoles().add(role);
+        role.getUsers().add(user);
+
         userRepository.save(user);
     }
 
@@ -94,14 +115,20 @@ public class RoleServiceImpl implements RoleService {
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Ruolo non esistente: " + roleName));
 
-        if (!user.getRoles().contains(role)) {
-            throw new IllegalStateException("Utente non ha il ruolo: " + roleName);
-        }
+        if ("Utente".equals(roleName))
+            throw new IllegalStateException("Il ruolo 'Utente' non può essere rimosso.");
+        if ("Amministratore".equals(roleName))
+            throw new UnauthorizedUserException("Il ruolo 'Amministratore' non può essere rimosso.");
 
-        user.getRoles().remove(role);
-        role.getUsers().remove(user);
+        boolean hasRole = user.getRoles() != null &&
+                user.getRoles().stream().anyMatch(r -> roleName.equals(r.getName()));
+        if (!hasRole)
+            throw new IllegalStateException("Utente non ha il ruolo: " + roleName);
+
+        user.getRoles().removeIf(r -> roleName.equals(r.getName()));
+        if (role.getUsers() != null)
+            role.getUsers().remove(user);
 
         userRepository.save(user);
     }
-
 }
