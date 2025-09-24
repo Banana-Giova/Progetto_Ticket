@@ -18,4 +18,5 @@ public class TicketResponse {
     private LocalDateTime created_at;
     private LocalDateTime modified_at;
     private String status; // se hai un enum Status
+    private Boolean isAllTickets;
 }

@@ -55,16 +55,18 @@ public class TicketController {
         return ResponseEntity.ok(ticket);
     }
 
+
     @GetMapping(path = "/", produces = "application/json")
     public ResponseEntity<?> getAllTicketsByUser(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) Status status,
+            @RequestParam(required = false) Boolean isAllTickets,
             Pageable pageable){
         User user = authHelper.getUser();
 
         Page<TicketResponse> tickets = service.findTicketsByUserWithFilters(
-                user.getId(), keyword, categoryName, status, pageable);
+                user.getId(), keyword, categoryName, status, isAllTickets, pageable);
 
         return ResponseEntity.ok(tickets);
     }

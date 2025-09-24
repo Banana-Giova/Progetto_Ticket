@@ -86,6 +86,7 @@ public class TicketServiceImpl implements TicketService{
             String keyword,
             String categoryName,
             Status status,
+            Boolean isAllTickets,
             Pageable pageable) {
 
         if (!userRepository.existsById(userId)) {
@@ -97,12 +98,12 @@ public class TicketServiceImpl implements TicketService{
             throw new RuntimeException("Utente senza ruoli, accesso negato");
         }
 
-        Page<Ticket> tickets;
+        Page<Ticket> tickets = Page.empty();
 
         if (user.get().getRoles()
                 .stream()
                 .map(Role::getName)
-                .anyMatch("Utente"::equals)) {
+                .anyMatch("Utente"::equals) && !isAllTickets){
             if (keyword != null && !keyword.isBlank()) {
                 tickets = ticketRepository
                         .findByUserIdAndTitleContainingIgnoreCaseOrUserIdAndDescriptionContainingIgnoreCase(
@@ -121,7 +122,10 @@ public class TicketServiceImpl implements TicketService{
                 tickets = ticketRepository.findByUserId(userId, pageable);
             }
 
-        } else {
+        } else if (user.get().getRoles()
+                .stream()
+                .map(Role::getName)
+                .anyMatch("Operatore"::equals) && isAllTickets){
             if (keyword != null && !keyword.isBlank()) {
                 tickets = ticketRepository
                         .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
