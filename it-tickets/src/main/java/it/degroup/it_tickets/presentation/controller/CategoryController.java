@@ -1,7 +1,7 @@
 package it.degroup.it_tickets.presentation.controller;
 
 import it.degroup.it_tickets.entity.Category;
-import it.degroup.it_tickets.service.category.CategoryService;
+import it.degroup.it_tickets.service.Category.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

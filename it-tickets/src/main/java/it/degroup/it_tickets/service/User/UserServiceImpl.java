@@ -4,6 +4,7 @@ import it.degroup.it_tickets.common.exceptions.DuplicateException;
 import it.degroup.it_tickets.common.exceptions.EmailNotConfirmedException;
 import it.degroup.it_tickets.common.mappers.UserMapper;
 import it.degroup.it_tickets.common.providers.EmailSender;
+import it.degroup.it_tickets.common.security.AuthenticationHelper;
 import it.degroup.it_tickets.common.security.PasswordHelper;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.*;
@@ -50,6 +51,8 @@ public class UserServiceImpl implements UserService {
     private EmailSender emailSender;
     @Autowired
     private PasswordHelper passwordHelper;
+    @Autowired
+    private AuthenticationHelper authHelper;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -104,6 +107,19 @@ public class UserServiceImpl implements UserService {
                                  user.getId(), user.getEmail(),
                                  user.getName(), user.getSurname(),
                                  user.getRoleList());
+    }
+
+    @Override
+    public void logout(OnlyEmailRequest request) {
+        var userFound = userRepository.findByEmail(request.getUserEmail());
+        if (userFound.isEmpty()) {
+            throw new UsernameNotFoundException("Utente non presente nel sistema.");
+        }
+        User user = userFound.get();
+        user.setToken(null);
+        userRepository.save(user);
+
+        authHelper.wipeUserDetails();
     }
 
     @Override
@@ -223,34 +239,20 @@ public class UserServiceImpl implements UserService {
         if (hasRole && hasKeyword) {
             keyword = keyword.trim();
             roleName = roleName.trim();
-            switch (roleName) {
-                case "Utente":
-                    usersPage = userRepository.findOnlyUsersByKeyword(keyword, pageable);
-                    break;
-                case "Operatore":
-                    usersPage = userRepository.findOnlyOperatorsByKeyword(keyword, pageable);
-                    break;
-                case "Amministratore":
-                    usersPage = userRepository.findByRoleNameAndKeyword(roleName, keyword, pageable);
-                    break;
-                default:
-                    usersPage = Page.empty(pageable);
-            }
+            usersPage = switch (roleName) {
+                case "Utente" -> userRepository.findOnlyUsersByKeyword(keyword, pageable);
+                case "Operatore" -> userRepository.findOnlyOperatorsByKeyword(keyword, pageable);
+                case "Amministratore" -> userRepository.findByRoleNameAndKeyword(roleName, keyword, pageable);
+                default -> Page.empty(pageable);
+            };
         } else if (hasRole) {
             roleName = roleName.trim();
-            switch (roleName) {
-                case "Utente":
-                    usersPage = userRepository.findOnlyUsers(pageable);
-                    break;
-                case "Operatore":
-                    usersPage = userRepository.findOnlyOperators(pageable);
-                    break;
-                case "Amministratore":
-                    usersPage = userRepository.findByRolesNameIgnoreCase(roleName, pageable);
-                    break;
-                default:
-                    usersPage = Page.empty(pageable);
-            }
+            usersPage = switch (roleName) {
+                case "Utente" -> userRepository.findOnlyUsers(pageable);
+                case "Operatore" -> userRepository.findOnlyOperators(pageable);
+                case "Amministratore" -> userRepository.findByRolesNameIgnoreCase(roleName, pageable);
+                default -> Page.empty(pageable);
+            };
         } else if (hasKeyword) {
             String kw = keyword.trim();
             usersPage = userRepository.findByNameContainingIgnoreCaseOrSurnameContainingIgnoreCaseOrEmailContainingIgnoreCase(kw, kw, kw, pageable);

@@ -34,7 +34,7 @@ public class RoleController {
 
         RoleResponseWithUsers response = roleService.createRole(request.getName());
         OperationResult<RoleResponseWithUsers> result =
-                OperationResult.ok(response, "Creazione ruolo completata con successo!");
+                OperationResult.ok(response, "Creazione ruolo completata con successo.");
 
         return ResponseEntity
                 .ok()
@@ -56,7 +56,7 @@ public class RoleController {
 
         RoleResponseWithUsers response = roleService.getRole(roleName);
         OperationResult<RoleResponseWithUsers> result =
-                OperationResult.ok(response, "Ottenimento dati sul ruolo completato con successo!");
+                OperationResult.ok(response, "Ottenimento dati sul ruolo completato con successo.");
 
         return ResponseEntity
                 .ok()
@@ -71,7 +71,7 @@ public class RoleController {
 
         List<UserResponseWithRoles> response = roleService.getUsersByRole(roleName);
         OperationResult<List<UserResponseWithRoles>> result =
-                OperationResult.ok(response, "Ottenimento lista utenti completato con successo!");
+                OperationResult.ok(response, "Ottenimento lista utenti completato con successo.");
 
         return ResponseEntity
                 .ok()
@@ -89,7 +89,7 @@ public class RoleController {
         OperationResult<String> result =
                 OperationResult.ok(
                         "RUOLO ASSEGNATO CORRETTAMENTE ALL'UTENTE CON LA SEGUENTE EMAIL: " + request.getEmail(),
-                        "Assegnazione ruolo completata con successo!"
+                        "Assegnazione ruolo completata con successo."
                 );
 
         return ResponseEntity
@@ -108,7 +108,7 @@ public class RoleController {
         OperationResult<String> result =
                 OperationResult.ok(
                         "RUOLO RIMOSSO CORRETTAMENTE ALL'UTENTE CON LA SEGUENTE EMAIL: " + request.getEmail(),
-                        "Rimozione ruolo completata con successo!"
+                        "Rimozione ruolo completata con successo."
                 );
 
         return ResponseEntity

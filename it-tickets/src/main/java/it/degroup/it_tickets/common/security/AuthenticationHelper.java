@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.security.auth.login.LoginException;
 import java.util.Optional;
 
 @Slf4j
@@ -47,6 +48,18 @@ public class AuthenticationHelper {
         if (user.isEmpty())
             throw new RuntimeException("Utente non trovato");
         return user.get();
+    }
+
+    public void wipeUserDetails() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            log.warn("wipeUserDetails chiamato ma nessun utente autenticato presente — nessuna azione eseguita.");
+            return;
+        }
+
+        log.info("Effettuo il logout per utente: {}", auth.getName());
+        SecurityContextHolder.clearContext();
     }
 
     // Ritorna l'utente se è operatore, altrimenti lancia UnauthorizedUserException; simile per il metodo sotto questo.

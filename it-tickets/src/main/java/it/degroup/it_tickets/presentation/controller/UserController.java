@@ -35,10 +35,18 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping (path = "/login", consumes = "application/json")   //responseEntity è una classe generica per gestire le risposte hhtp
+    @PostMapping (path = "/login",
+                  consumes = "application/json")   //responseEntity è una classe generica per gestire le risposte hhtp
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         LoginResponse response = userService.authenticate(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping (path = "/auth/logout",
+                  consumes = "application/json")
+    public ResponseEntity<?> logout(@RequestBody OnlyEmailRequest request) {
+        userService.logout(request);
+        return ResponseEntity.ok("Logout effettuato con successo!");
     }
 
     @PostMapping(path = "/register",
@@ -47,7 +55,7 @@ public class UserController {
     public ResponseEntity<OperationResult<UserResponseWithRoles>> register(
             @Valid @RequestBody RegisterRequest request) {
         UserResponseWithRoles response = userService.register(request);
-        OperationResult<UserResponseWithRoles> result = OperationResult.ok(response, "Creazione utente completata con successo!");
+        OperationResult<UserResponseWithRoles> result = OperationResult.ok(response, "Creazione utente completata con successo.");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
@@ -59,7 +67,7 @@ public class UserController {
             @Valid @RequestBody EmailTokenRequest request) {
         userService.confirmEmailToken(request);
         OperationResult<String> result = OperationResult.ok("TOKEN VALIDO",
-                                                          "Conferma token avvenuta con successo!");
+                                                          "Conferma token avvenuta con successo.");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
@@ -71,7 +79,7 @@ public class UserController {
             @Valid @RequestBody ResetPasswordRequest request) {
         userService.resetPassword(request);
         OperationResult<String> result = OperationResult.ok("RESET PASSWORD VALIDO",
-                                                          "Reset password avvenuto con successo!");
+                                                          "Reset password avvenuto con successo.");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
@@ -83,7 +91,7 @@ public class UserController {
             @Valid @RequestBody OnlyEmailRequest request) {
         userService.forgotPassword(request);
         OperationResult<String> result = OperationResult.ok("MAIL CON PASSWORD TEMPORANEA INVIATA",
-                                                          "Password temporanea generata ed inviata con successo!");
+                                                          "Password temporanea generata ed inviata con successo.");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
@@ -106,7 +114,7 @@ public class UserController {
     public ResponseEntity<OperationResult<UserResponseWithRoles>> profileFetch() {
         User curr_user = authHelper.getUser();
         UserResponseWithRoles response = userService.profileFetch(curr_user);
-        OperationResult<UserResponseWithRoles> result = OperationResult.ok(response, "Fetch del profile utente eseguito con successo!");
+        OperationResult<UserResponseWithRoles> result = OperationResult.ok(response, "Fetch del profile utente eseguito con successo.");
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(result);
     }
