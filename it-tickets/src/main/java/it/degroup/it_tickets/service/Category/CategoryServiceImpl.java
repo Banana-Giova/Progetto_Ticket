@@ -1,9 +1,8 @@
-package it.degroup.it_tickets.service.category;
+package it.degroup.it_tickets.service.Category;
 
 import it.degroup.it_tickets.entity.Category;
 import it.degroup.it_tickets.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

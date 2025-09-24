@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        .container {
+          max-width: 680px;
+          margin: 18px auto;
+          padding: 22px;
+          font-family: Arial, Helvetica, sans-serif;
+          background-color: #ffffff;
+          border: 1px solid #e6e6e6;
+          border-radius: 6px;
+          color: #333;
+        }
+        .header {
+          border-bottom: 1px solid #f0f0f0;
+          padding-bottom: 12px;
+          margin-bottom: 14px;
+        }
+        h2 { margin: 0 0 8px 0; font-size: 20px; color: #222; }
+        p { margin: 8px 0; line-height: 1.45; }
+        .cta {
+          display: inline-block;
+          padding: 12px 20px;
+          margin-top: 16px;
+          background-color: #007bff;
+          color: #fff !important;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: 600;
+        }
+        .preview {
+          margin-top: 12px;
+          padding: 12px;
+          background: #f8f9fb;
+          border-left: 4px solid #d9e7ff;
+          color: #1f2937;
+          white-space: pre-wrap;
+        }
+        .meta {
+          margin-top: 14px;
+          font-size: 0.95rem;
+          color: #555;
+        }
+        .footer {
+          margin-top: 22px;
+          font-size: 12px;
+          color: #888;
+          text-align: center;
+        }
+        a.plain { color: #007bff; text-decoration: none; word-break: break-all;}
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Ciao <span th:text="${name}">Utente</span>,</h2>
+    </div>
+
+    <p>Ti scriviamo per informarti che è arrivata una nuova notifica su <strong>It-Tickets</strong>.</p>
+
+    <div class="preview" th:if="${message}">
+        <strong>Anteprima:</strong>
+        <div th:text="${message}">Testo della notifica...</div>
+    </div>
+
+    <p class="meta">
+        Attualmente hai
+        <strong th:text="${pendingCount}">0</strong>
+        notifiche non lette in attesa. Quando effettuerai il prossimo accesso le potrai consultare tutte nella tua area notifiche.
+    </p>
+
+    <a th:href="${notificationsLink}" class="cta">Vai alle notifiche</a>
+
+    <p style="margin-top:14px;">
+        Se il pulsante non funziona, copia e incolla questo link nel browser:
+    </p>
+    <p><a th:href="${viewLink}" th:text="${viewLink}" class="plain">https://example.com/notifications</a></p>
+
+    <div class="footer">
+        <p>Se non desideri ricevere queste email, puoi modificare le tue impostazioni di notifica nel tuo profilo.</p>
+        <p>&copy; 2025 Digital Engineering — It-Tickets</p>
+    </div>
+</div>
+</body>
+</html>

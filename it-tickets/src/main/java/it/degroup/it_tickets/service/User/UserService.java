@@ -19,6 +19,7 @@ public interface UserService {
     void sendEmailToken(String user_email);
     void confirmEmailToken(EmailTokenRequest email_token);
     LoginResponse authenticate(LoginRequest request);
+    void logout(OnlyEmailRequest request);
     Optional<String> getTokenByEmail(String email);
     Optional<User> findUserByEmail(String email);
     void resetPassword(ResetPasswordRequest request);

@@ -53,10 +53,12 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         try {
             String authHeader = request.getHeader(AUTH_HEADER_KEY) != null ? request.getHeader(AUTH_HEADER_KEY) : request.getHeader(REFRESH_HEADER_KEY);
             if ((request.getRequestURI().contains("login")
-                    || request.getRequestURI().contains("test")
+                    || request.getRequestURI().contains("ws")
                     || request.getRequestURI().contains("register")
                     || request.getRequestURI().contains("email-confirmation")
                     || request.getRequestURI().contains("reset-password")
+                    || request.getRequestURI().contains("dev/send-notif")
+                    || request.getRequestURI().contains("dev/test")
                     || request.getRequestURI().contains("forgot-password"))
                     && authHeader == null) {
                 filterChain.doFilter(request, response);

@@ -11,7 +11,8 @@ import it.degroup.it_tickets.repository.CategoryRepository;
 import it.degroup.it_tickets.repository.TicketRepository;
 import it.degroup.it_tickets.repository.UserRepository;
 //import it.degroup.it_tickets.utility.PaginationUtils;
-import it.degroup.it_tickets.service.category.CategoryService;
+import it.degroup.it_tickets.service.Category.CategoryService;
+import it.degroup.it_tickets.service.Notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -39,6 +40,8 @@ public class TicketServiceImpl implements TicketService{
     TicketsMapper mapper;
     @Autowired
     CategoryService categoryService;
+    @Autowired
+    NotificationService notifService;
 
 
     @Override
@@ -60,6 +63,7 @@ public class TicketServiceImpl implements TicketService{
         ticket.setCreated_at(LocalDateTime.now());
         ticket.setStatus(Status.TO_DO);
 
+        notifService.notifyAllOperators("Ticket creato da " + user.get().getEmail());
         return ticketRepository.save(ticket);
     }
 

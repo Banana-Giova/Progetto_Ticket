@@ -16,7 +16,7 @@ public class CorsConfig {
 
         config.setAllowedOrigins(List.of("http://localhost:4200"));
         config.setAllowedHeaders(List.of("Authorization", "X-Refresh-Token", "Content-Type", "Accept"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowCredentials(true);
         config.setExposedHeaders(List.of("Authorization", "X-Refresh-Token"));
 
