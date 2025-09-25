@@ -15,4 +15,6 @@ public interface NotificationService {
     void emailOfflineUser(String recipient, String message);
 
     List<NotificationResponse> getPending(String recipient);
+
+    List<NotificationResponse> getRead(String recipient);
 }

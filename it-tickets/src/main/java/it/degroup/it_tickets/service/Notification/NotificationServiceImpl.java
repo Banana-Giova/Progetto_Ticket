@@ -9,6 +9,7 @@ import it.degroup.it_tickets.presentation.responses.NotificationResponse;
 import it.degroup.it_tickets.providers.models.NotifyOfflineUserTemplateMessage;
 import it.degroup.it_tickets.repository.NotificationRepository;
 import it.degroup.it_tickets.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Transactional
 @Service
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
 
     @Autowired
@@ -47,10 +49,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationResponse notifyUser(String recipientEmail, String message) {
-        Optional<User> curr_user = userRepo.findByEmail(recipientEmail);
+        User currUser = userRepo.findByEmail(recipientEmail)
+                .orElseThrow(() -> new IllegalArgumentException("Utente non trovato: " + recipientEmail));
 
         Notification newNotif = Notification.builder()
-                .recipient(curr_user.get())
+                .recipient(currUser)
                 .message(message)
                 .read(false)
                 .createdAt(LocalDateTime.now())
@@ -58,20 +61,21 @@ public class NotificationServiceImpl implements NotificationService {
         newNotif = notifRepo.save(newNotif);
         NotificationResponse notifResp = notifMapper.notifToResponse(newNotif);
 
-        if (!curr_user.isEmpty() &&
-                curr_user.get().getToken().isEmpty()) {
+        if (currUser.getToken().isEmpty()) {
             this.emailOfflineUser(recipientEmail, message);
             return notifResp;
         }
+        messagingTemplate.convertAndSendToUser(
+                recipientEmail,
+                "/queue/notifications",
+                notifResp);
 
-        messagingTemplate.convertAndSend(String.format("%s/queue/notifications", curr_user.get().getEmail()),
-                                         notifResp);
         return notifResp;
     }
 
     @Override
     public void notifyAllOperators(String message) {
-        List<User> operators = userRepo.findOnlyOperatorsList();
+        List<User> operators = userRepo.findAlsoOperatorsList();
 
         for (User operator : operators) {
             Notification newNotif = Notification.builder()
@@ -83,11 +87,19 @@ public class NotificationServiceImpl implements NotificationService {
             newNotif = notifRepo.save(newNotif);
             NotificationResponse notifResp = notifMapper.notifToResponse(newNotif);
 
-            if (operator.getToken().isEmpty()) {
-                emailOfflineUser(operator.getEmail(), message);
-            } else {
-                messagingTemplate.convertAndSend(String.format("%s/queue/notifications", operator.getEmail()),
-                        notifResp);
+            try {
+                if (operator.getToken() == null) {
+                    emailOfflineUser(operator.getEmail(), message);
+                } else {
+                    messagingTemplate.convertAndSendToUser(
+                            operator.getEmail(),
+                            "/queue/notifications",
+                            notifResp
+                    );
+                }
+            } catch (Exception e) {
+                String errorText = "WS send error for operator " + operator.getEmail() + "\n=> " + e;
+                log.error(errorText);
             }
         }
     }
@@ -130,5 +142,13 @@ public class NotificationServiceImpl implements NotificationService {
                         .stream()
                         .map(notifMapper::notifToResponse)
                         .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<NotificationResponse> getRead(String recipient) {
+        return notifRepo.findByRecipient_EmailAndReadTrueOrderByCreatedAtAsc(recipient)
+                .stream()
+                .map(notifMapper::notifToResponse)
+                .collect(Collectors.toList());
     }
 }

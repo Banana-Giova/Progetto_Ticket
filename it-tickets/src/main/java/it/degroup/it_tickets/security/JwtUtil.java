@@ -119,5 +119,20 @@ public class JwtUtil  {
         }
     }
 
+    public String extractEmail(String token) {
+        if (token == null || token.isEmpty()) {
+            return null;
+        }
+        // se il token ha prefisso “Bearer ”, rimuovilo
+        String raw = token;
+        if (raw.startsWith(TOKEN_PREFIX)) {
+            raw = raw.substring(TOKEN_PREFIX.length());
+        }
+        Claims claims = parseJwtClaims(raw);
+        if (claims == null) {
+            return null;
+        }
+        return claims.getSubject();
+    }
 
 }
