@@ -171,6 +171,18 @@ public class TicketServiceImpl implements TicketService{
     }
 
     @Override
+    public Ticket updateStatusDeleted(Long id, String status) {
+        Ticket ticket = ticketRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Ticket non trovato con l'id " + id));
+        if (ticket.getStatus().toString().equals("TO_DO")) {
+            ticket.setStatus(Status.valueOf(status));
+            ticket.setModified_at(LocalDateTime.now());
+
+        }
+            return ticketRepository.save(ticket);
+    }
+
+
+    @Override
     public List<Category> getAllCategories() {
         return categoryService.getAllCategories();
     }

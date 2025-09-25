@@ -5,6 +5,7 @@ import it.degroup.it_tickets.entity.Status;
 import it.degroup.it_tickets.entity.Ticket;
 import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.presentation.requests.PatchRequestStatus;
+import it.degroup.it_tickets.presentation.requests.PatchStatusDeleted;
 import it.degroup.it_tickets.presentation.requests.TicketRequest;
 import it.degroup.it_tickets.presentation.requests.UpdateDescriptionRequest;
 import it.degroup.it_tickets.presentation.responses.TicketChartResponse;
@@ -71,8 +72,6 @@ public class TicketController {
         return ResponseEntity.ok(tickets);
     }
 
-
-
     @GetMapping("/status")
     public ResponseEntity<List<Status>> getAllStatuses() {
         return ResponseEntity.ok(service.getAllStatuses());
@@ -103,6 +102,14 @@ public class TicketController {
             Ticket ticket = service.updateStatus(id, request.getNewStatus());
             TicketResponse response = mapper.toResponse(ticket);
             return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('Utente')")
+    @PatchMapping(path = "/{id}/delete-status", consumes = "application/json")
+    public ResponseEntity<?> updateStatusDeleted(@PathVariable Long id, @RequestBody PatchStatusDeleted request) {
+        Ticket ticket = service.updateStatusDeleted(id, request.getDeletedStatus());
+        TicketResponse response = mapper.toResponse(ticket);
+        return ResponseEntity.ok(response);
     }
 
 

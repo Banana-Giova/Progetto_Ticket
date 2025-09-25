@@ -36,6 +36,8 @@ public interface TicketService {
 
     Ticket updateStatus(Long id, String status);
 
+    Ticket updateStatusDeleted(Long id, String status);
+
     List<Category> getAllCategories();
 
     List<Status> getAllStatuses();
