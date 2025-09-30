@@ -34,4 +34,12 @@ public class NotificationController {
 
         return ResponseEntity.ok(pending);
     }
+
+    @GetMapping(path = "/{email}/already-read")
+    public ResponseEntity<List<NotificationResponse>> getAlreadyRead(
+            @PathVariable("email") String userEmail) {
+        List<NotificationResponse> alreadyRead = notifService.getRead(userEmail);
+
+        return ResponseEntity.ok(alreadyRead);
+    }
 }

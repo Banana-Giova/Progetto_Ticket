@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,6 +50,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateException.class)
     public ResponseEntity<OperationResult<?>> handleDuplicate(DuplicateException ex) {
         log.warn("DuplicateException: {}", ex.getMessage());
+        OperationResult<?> body = OperationResult.ko(ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .headers(JSON_HEADERS)
+                .body(body);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<OperationResult<?>> handleDuplicate(NoSuchElementException ex) {
+        log.warn("NoSuchElementException: {}", ex.getMessage());
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
