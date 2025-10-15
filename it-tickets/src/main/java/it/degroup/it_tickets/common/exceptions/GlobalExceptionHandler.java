@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UnauthorizedUserException.class)
-    public ResponseEntity<OperationResult<?>> handleDuplicate(UnauthorizedUserException ex) {
+    public ResponseEntity<OperationResult<?>> handleUnauthorized(UnauthorizedUserException ex) {
         log.warn("UnauthorizedUserException: {}", ex.getMessage());
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
         return ResponseEntity
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<OperationResult<?>> handleDuplicate(NoSuchElementException ex) {
+    public ResponseEntity<OperationResult<?>> handleNoSuchElement(NoSuchElementException ex) {
         log.warn("NoSuchElementException: {}", ex.getMessage());
         OperationResult<?> body = OperationResult.ko(ex.getMessage());
         return ResponseEntity
