@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long>  {
     List<Notification> findByRecipient_EmailAndReadFalseOrderByCreatedAtAsc(String recipientEmail);
+    List<Notification> findByRecipient_EmailAndReadTrueOrderByCreatedAtAsc(String recipientEmail);
     long countByRecipient_EmailAndReadFalse(String recipientEmail);
 }

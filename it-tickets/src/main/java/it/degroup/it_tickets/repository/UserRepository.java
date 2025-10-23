@@ -54,4 +54,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u IN (SELECT u2 FROM User u2 JOIN u2.roles r WHERE r.name = 'Operatore') AND u NOT IN (SELECT u3 FROM User u3 JOIN u3.roles r WHERE r.name = 'Amministratore')")
     List<User> findOnlyOperatorsList();
+
+    @Query("SELECT u FROM User u WHERE u IN (SELECT u2 FROM User u2 JOIN u2.roles r WHERE r.name = 'Operatore')")
+    List<User> findAlsoOperatorsList();
 }

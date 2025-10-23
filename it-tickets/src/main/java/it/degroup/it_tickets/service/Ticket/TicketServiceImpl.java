@@ -63,8 +63,9 @@ public class TicketServiceImpl implements TicketService{
         ticket.setCreated_at(LocalDateTime.now());
         ticket.setStatus(Status.TO_DO);
 
+        Ticket new_ticket = ticketRepository.save(ticket);
         notifService.notifyAllOperators("Ticket creato da " + user.get().getEmail());
-        return ticketRepository.save(ticket);
+        return new_ticket;
     }
 
     @Override
@@ -158,6 +159,8 @@ public class TicketServiceImpl implements TicketService{
             throw new IllegalStateException("ticket non modificabile perchè gia in lavorazione");
         ticket.setDescription(newDescription);
         ticket.setModified_at(LocalDateTime.now());
+        notifService.notifyUser(ticket.getUser().getEmail(),
+                                String.format("La descrizione del tuo ticket con titolo \"%s\" è stato modificata!", ticket.getTitle()));
         return ticketRepository.save(ticket);
     }
 
@@ -167,6 +170,8 @@ public class TicketServiceImpl implements TicketService{
         ticket.setStatus(Status.valueOf(status));
         ticket.setModified_at(LocalDateTime.now());
         Ticket ticketsaved = ticketRepository.save(ticket);
+        notifService.notifyUser(ticket.getUser().getEmail(),
+                String.format("Lo status del tuo ticket con titolo \"%s\" è stato modificato!", ticket.getTitle()));
         return ticketsaved;
     }
 
