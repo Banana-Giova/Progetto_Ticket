@@ -6,6 +6,7 @@ import it.degroup.it_tickets.entity.User;
 import it.degroup.it_tickets.repository.CategoryRepository;
 import it.degroup.it_tickets.repository.RoleRepository;
 import it.degroup.it_tickets.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +24,11 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${demo.init.samuEmail}")
+    private String samuEmail;
+    @Value("${demo.init.samuPassword}")
+    private String samuPassword;
+
     public DataInitializer(CategoryRepository categoryRepo,
                            RoleRepository roleRepo,
                            UserRepository userRepo,
@@ -38,10 +44,22 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // --- CATEGORIES ---
         List<String> cats = List.of(
-                "Assistenza PC","Creazione Repository","VPN","Bolla PC","Assegnazione Dispositivi",
-                "Installazione e Configurazione","Manutenzione Rete","Monitoraggio Prestazioni","Security",
-                "Gestione Accessi","Backup e Ripristino Dati","Assistenza agli Utenti","Gestione Problemi Tecnici",
-                "Aggiornamento Sistemi","Ottimizzazione Risorse","Altro"
+                "Assistenza PC",
+                            "Creazione Repository",
+                            "VPN",
+                            "Bolla PC",
+                            "Assegnazione Dispositivi",
+                            "Installazione e Configurazione",
+                            "Manutenzione Rete",
+                            "Monitoraggio Prestazioni",
+                            "Security",
+                            "Gestione Accessi",
+                            "Backup e Ripristino Dati",
+                            "Assistenza agli Utenti",
+                            "Gestione Problemi Tecnici",
+                            "Aggiornamento Sistemi",
+                            "Ottimizzazione Risorse",
+                            "Altro"
         );
 
         for (String c : cats) {
@@ -79,6 +97,30 @@ public class DataInitializer implements CommandLineRunner {
                 roleRepo.findByName("Utente").ifPresent(existing.getRoles()::add);
                 roleRepo.findByName("Operatore").ifPresent(existing.getRoles()::add);
                 roleRepo.findByName("Amministratore").ifPresent(existing.getRoles()::add);
+                userRepo.save(existing);
+            }
+        }
+
+        // --- SAMUELE USER ---
+        if (userRepo.findByEmail(samuEmail).isEmpty()) {
+            User samuUser = new User();
+            samuUser.setEmail(samuEmail);
+            samuUser.setName("Samuele");
+            samuUser.setSurname("Romanelli");
+
+            samuUser.setPassword(passwordEncoder.encode(samuPassword));
+            samuUser.setEmailConfirmed(true);
+            samuUser.setRoles(new HashSet<>());
+
+            roleRepo.findByName("Utente").ifPresent(samuUser.getRoles()::add);
+            roleRepo.findByName("Operatore").ifPresent(samuUser.getRoles()::add);
+
+            try {
+                userRepo.save(samuUser);
+            } catch (DataIntegrityViolationException ex) {
+                User existing = userRepo.findByEmail(samuEmail).orElseThrow();
+                roleRepo.findByName("Utente").ifPresent(existing.getRoles()::add);
+                roleRepo.findByName("Operatore").ifPresent(existing.getRoles()::add);
                 userRepo.save(existing);
             }
         }
