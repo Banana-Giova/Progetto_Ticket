@@ -30,7 +30,8 @@ public class SecurityConfig {
                         .requestMatchers("/reset-password").permitAll()
                         .requestMatchers("/forgot-password").permitAll()
                         .requestMatchers("/categories").permitAll()
-                        .requestMatchers("/ws/**").permitAll()
+
+                               .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/dev/**").permitAll()
                         .requestMatchers("/logout").authenticated()
                         .requestMatchers("/tickets").authenticated()
